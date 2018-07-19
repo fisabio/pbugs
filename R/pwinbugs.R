@@ -5,7 +5,6 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
                      n.sims = 1000, bin = (n.iter - n.burnin) / n.thin,
                      debug = FALSE, DIC = TRUE, digits = 5, codaPkg = FALSE,
                      bugs.directory = "default",
-                     program = c("winbugs", "openbugs"),
                      cluster = cluster, pbugs.directory = pbugs.directory,
                      working.directory = NULL, clearWD = FALSE,
                      useWINE = .Platform$OS.type != "windows", WINE = "/usr/bin/wine",
@@ -27,15 +26,9 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
       "C:/Program Files/WinBUGS14"
     )
   }
-
-  if (is.R()) {
-    .fileCopy <- file.copy
-  } else {
-    .fileCopy <- splus.file.copy
-  }
+  .fileCopy <- file.copy
 
   # Creates, and copies WinBUGS copies to, pbugs.directory
-
   if (!dir.exists(pbugs.directory)) {
     isok <- dir.create(pbugs.directory, recursive = TRUE, mode = "0777")
     if (!isok) {
@@ -89,7 +82,6 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     on.exit(setwd(savedWD), add = TRUE)
     inTempDir <- TRUE
   }
-  program <- match.arg(program)
   if (missing(bugs.directory) && !is.null(bugs.dir <- getOption("R2WinBUGS.bugs.directory"))) {
     bugs.directory <- bugs.dir
   }
@@ -102,22 +94,21 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
       stop("Non-Windows platforms not yet supported in R2WinBUGS for S-PLUS")
     }
     if (is.null(WINE)) {
-      WINE <- R2WinBUGS::findUnixBinary(x = "wine")
+      WINE <- findUnixBinary(x = "wine")
     }
     if (is.null(WINEPATH)) {
-      WINEPATH <- R2WinBUGS::findUnixBinary(x = "winepath")
+      WINEPATH <- findUnixBinary(x = "winepath")
     }
   }
   if (is.function(model.file)) {
     temp <- tempfile("model")
-    temp <- if (is.R() || .Platform$OS.type != "windows") {
+    temp <- if (.Platform$OS.type != "windows") {
       paste(temp, "txt", sep = ".")
     } else {
       gsub("\\.tmp$", ".txt", temp)
     }
-    write.model(model.file, con = temp, digits = digits)
+    R2WinBUGS::write.model(model.file, con = temp, digits = digits)
     model.file <- gsub("\\\\", "/", temp)
-    if (!is.R()) on.exit(file.remove(model.file), add = TRUE)
   } else {
     if (!file.exists(model.file))
       stop(paste(model.file, "does not exist."))
@@ -133,7 +124,7 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
   #####################
 
   if (!(length(data) == 1 && is.vector(data) && is.character(data) && (regexpr("\\.txt$", data) > 0))) {
-    bugs.data.file <- bugs.data(data, dir = getwd(), digits)
+    bugs.data.file <- R2WinBUGS::bugs.data(data, dir = getwd(), digits)
   } else {
 
     #####################
@@ -162,7 +153,7 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
   } else {
     if (!is.function(inits) && !is.null(inits) && (length(inits) != n.chains))
       stop("Number of initialized chains (length(inits)) != n.chains")
-    bugs.inits.files <- R2WinBUGS:::bugs.inits(bugs_init, 3, digits)
+    bugs.inits.files <- bugs.inits(inits, n.chains, digits)
   }
   if (DIC) parameters.to.save <- c(parameters.to.save, "deviance")
   if (!length(grep("\\.txt$", tolower(model.file)))) {
@@ -189,7 +180,7 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
   if (!is.null(bugs.seed)) {
     set.seed(bugs.seed)
   }
-  bugs.seed <- sample.int(1e+6, n.chains)
+  seed <- sample.int(1e+6, n.chains)
   for (i in seq_len(n.chains)) {
     working.aux <- file.path(working.directory, "Pbugs-working", paste0("ch", i))
     try(dir.create(working.aux, showWarnings = F))
@@ -197,7 +188,7 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     try(.fileCopy("data.txt", file.path(working.aux, "data.txt"), overwrite = TRUE))
     try(.fileCopy(paste0("inits", i, ".txt"), file.path(working.aux, "inits1.txt"), overwrite = TRUE))
     setwd(working.aux)
-    R2WinBUGS:::bugs.script(
+    bugs.script(
       parameters.to.save = parameters.to.save,
       n.chains           = 1,
       n.iter             = n.iter,
@@ -211,7 +202,7 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
       useWINE            = useWINE,
       newWINE            = newWINE,
       WINEPATH           = WINEPATH,
-      bugs.seed          = bugs.seed[i],
+      bugs.seed          = seed[i],
       summary.only       = summary.only,
       save.history       = save.history,
       bugs.data.file     = bugs.data.file,
@@ -221,7 +212,7 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     setwd(working.directory)
   }
 
-  pwinbugs.run(
+  try(pwinbugs.run(
     n.burnin        = n.burnin,
     bugs.directory  = bugs.directory,
     cluster         = cluster,
@@ -231,43 +222,65 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     useWINE         = useWINE,
     newWINE         = newWINE,
     WINEPATH        = WINEPATH
+  ))
+  error_msg <- "WinBUGS did not run correctly."
+  error_ch <- which(
+    sapply(
+      file.path(getwd(), paste0("coda", seq_len(n.chains), ".txt")),
+      readLines,
+      n = 1
+    ) == error_msg
   )
+  for (i in seq_along(error_ch)) {
+    warning("Chain ", as.numeric(error_ch[i]), " did not run correctly.",
+            "\n Look at the log file and try again with 'debug=TRUE' to\n",
+            " figure out what went wrong within Bugs.")
+  }
+  if (length(error_ch) > 0) {
+    warning("Chains whitout errors: ", n.chains - length(error_ch), " of ", n.chains, call. = FALSE)
+    real_chains <- seq_len(n.chains)[-error_ch]
+  } else {
+    real_chains <- seq_len(n.chains)
+  }
+
   #
   #####################
 
-  if (codaPkg) return(file.path(getwd(), paste0("coda", seq_len(n.chains), ".txt")))
+  if (codaPkg) return(file.path(getwd(), paste0("coda", real_chains, ".txt")))
 
   #####################
   # Pbugs-specific code
   sims <- c(
-    R2WinBUGS:::bugs.sims(
+    bugs.sims(
       parameters.to.save = parameters.to.save,
       n.chains           = n.chains,
       n.iter             = n.iter,
       n.burnin           = n.burnin,
       n.thin             = n.thin,
-      DIC                = FALSE
+      error_ch           = error_ch
     ),
     model.file = model.file,
-    program    = program
+    program    = "winbugs"
   )
+  n.chains    <- n.chains - length(error_ch)
+
   if (DIC) {
     LOG <- list(length = n.chains)
     pD  <- rep(NA, n.chains)
     DIC <- rep(NA, n.chains)
     for (i in seq_len(n.chains)) {
-      LOG[[i]] <- R2WinBUGS:::bugs.log(
-        file.path(working.directory, "Pbugs-working", paste0("ch", i), "log.txt")
+      LOG[[i]] <- bugs.log(
+        file.path(working.directory, "Pbugs-working", paste0("ch", real_chains[i]), "log.txt")
       )$DIC
     }
     if (any(is.na(LOG))) {
-      deviance <- sims$sims.array[, , dim(sims.array)[3], drop = FALSE]
-      if (!is.R()) dimnames(deviance) <- NULL
+      deviance <- sims$sims.array[, , dim(sims$sims.array)[3], drop = FALSE]
+      dimnames(deviance) <- NULL
       dim(deviance) <- dim(deviance)[1:2]
       pD  <- numeric(n.chains)
       DIC <- numeric(n.chains)
       for (i in seq_len(n.chains)) {
-        pD[i]  <- var(deviance[, i]) / 2
+        pD[i]  <- stats::var(deviance[, i]) / 2
         DIC[i] <- mean(deviance[, i]) + pD[i]
       }
       sims$DICbyR <- TRUE
@@ -286,12 +299,15 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
   if (clearWD) {
     file.remove(
       c(bugs.data.file, "log.odc", "log.txt", "codaIndex.txt", bugs.inits.files,
-        "script.txt", paste0("coda", seq_len(n.chains), ".txt"), "Pbugs")
+        "script.txt", paste0("coda", c(error_ch, real_chains), ".txt"), "Pbugs")
     )
   }
   #####################
 
   class(sims) <- c("bugs", "pbugs")
+  if (!is.null(bugs.seed))
+    sims$seed  <- bugs.seed
+  sims$n_cores <- cluster
 
   return(sims)
 }
@@ -302,26 +318,20 @@ pwinbugs.run <- function(n.burnin, bugs.directory, cluster, pbugs.directory,
                          n.chains, useWINE = .Platform$OS.type != "windows",
                          WINE = NULL, newWINE = TRUE, WINEPATH = NULL) {
 
-  if (useWINE && !is.R())
-    stop("Non-Windows platforms not yet supported in R2WinBUGS for S-PLUS")
   if (useWINE && (substr(bugs.directory, 2, 2) == ":"))
-    bugs.directory <- R2WinBUGS:::win2native(bugs.directory, newWINE = newWINE, WINEPATH = WINEPATH)
+    bugs.directory <- win2native(bugs.directory, newWINE = newWINE, WINEPATH = WINEPATH)
 
   #####################
   # Pbugs-specific code
   for (i in seq_len(n.chains)) {
-    try(R2WinBUGS:::bugs.update.settings(
+    try(bugs.update.settings(
       n.burnin       = n.burnin,
       bugs.directory = file.path(pbugs.directory, paste0(basename(bugs.directory), "-", i)))
     )
   }
   #####################
 
-  if (is.R()) {
-    .fileCopy <- file.copy
-  } else {
-    .fileCopy <- splus.file.copy
-  }
+  .fileCopy <- file.copy
 
   #####################
   # Pbugs-specific code
@@ -351,7 +361,7 @@ pwinbugs.run <- function(n.burnin, bugs.directory, cluster, pbugs.directory,
       "\"",
       dos.location,
       "\" /par \"",
-      R2WinBUGS:::native2win(
+      native2win(
         file.path(getwd(), "Pbugs-working", paste0("ch", i), "script.txt"),
         useWINE = useWINE, newWINE = newWINE, WINEPATH = WINEPATH
       ),
@@ -364,10 +374,9 @@ pwinbugs.run <- function(n.burnin, bugs.directory, cluster, pbugs.directory,
   if (is.null(cluster) || cluster > n.chains) {
     cluster <- min(n.chains, max(2, parallel::detectCores() - 1))
   }
-  cl <- makeCluster(cluster, type = "PSOCK")
-  on.exit(stopCluster(cl), add = TRUE)
+  cl <- parallel::makeCluster(cluster, type = "PSOCK")
+  on.exit(parallel::stopCluster(cl), add = TRUE)
 
-  parallel::clusterEvalQ(cl, library(R2WinBUGS))
   temp <- parallel::clusterApply(cl, bugsCall, system)
   .fileCopy(file.path(getwd(), "Pbugs-working", "ch1", "codaIndex.txt"), "codaIndex.txt", overwrite = TRUE)
   for (i in seq_len(n.chains)) {
@@ -378,15 +387,7 @@ pwinbugs.run <- function(n.burnin, bugs.directory, cluster, pbugs.directory,
     )
   }
   if (any(unlist(temp) == -1))
-    stop("Error in bugs.run().\nCheck that WinBUGS is in the specified directory.")
+    stop("Error in pwinbugs.run().\nCheck that WinBUGS is in the specified directory.")
   #
   #####################
-
-  if (is.R()) {
-    tmp <- scan("coda1.txt", character(), quiet = TRUE, sep = "\n")
-  } else {
-    tmp <- scan("coda1.txt", character(), sep = "\n")
-  }
-  if (length(grep("BUGS did not run correctly", tmp)) > 0)
-    stop("Look at the log file and\ntry again with 'debug=TRUE' to figure out what went wrong within Bugs.")
 }
