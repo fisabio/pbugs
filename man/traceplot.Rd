@@ -4,7 +4,7 @@
 \alias{traceplot}
 \title{Trace plot of MCMC draws}
 \usage{
-pbugs_trace(x, cutoff_neff = 100, cutoff_rhat = 1.1, ...)
+traceplot(x, cutoff_neff = 100, cutoff_rhat = 1.1, max_pars = 9, ...)
 }
 \arguments{
 \item{x}{Object of class \code{bugs} or \code{pbugs}.}
@@ -13,10 +13,12 @@ pbugs_trace(x, cutoff_neff = 100, cutoff_rhat = 1.1, ...)
 
 \item{cutoff_rhat}{Minimum threshold of Rhat to select parameters.}
 
+\item{max_pars}{Maximum number of parameter to show. Default: 9.}
+
 \item{...}{Additional arguments to be passed to \code{\link[bayesplot]{mcmc_trace}} function.}
 }
 \description{
-Trace plot of MCMC draws, following Neff & Rhat criteria
+Trace plot of MCMC draws that did not converge following Neff & Rhat criteria
 }
 \seealso{
 \code{\link[bayesplot]{mcmc_trace}}

@@ -1,6 +1,6 @@
 
 bugs.sims <- function(parameters.to.save, n.chains, n.iter, n.burnin,
-                      n.thin, error_ch) {
+                      n.thin, error_ch, program = "winbugs") {
 
   if (length(error_ch) == 0) {
     real_chains <- seq_len(n.chains)
@@ -11,8 +11,14 @@ bugs.sims <- function(parameters.to.save, n.chains, n.iter, n.burnin,
     real_chains <- seq_len(n.chains)[-error_ch]
     n.chains    <- n.chains - length(error_ch)
   }
-  sims.files      <- paste("coda", real_chains, ".txt", sep = "")
-  index           <- data.table::fread(file = "codaIndex.txt")
+
+  if (program == "winbugs") {
+    coda_names <- c("coda", "codaIndex.txt")
+  } else {
+    coda_names <- c("CODAchain", "CODAindex.txt")
+  }
+  sims.files      <- paste0(coda_names[1], real_chains, ".txt")
+  index           <- data.table::fread(file = coda_names[2])
   parameter.names <- index[[1]]
   n.keep          <- as.numeric(index[1, 3] - index[1, 2] + 1)
   n.parameters    <- length(parameter.names)

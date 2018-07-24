@@ -1,4 +1,40 @@
 
+openbugs.log <- function(file) {
+  if (!file.exists(file))
+    stop("Log file", file, "does not exist")
+  log.txt <- readLines(file, warn = FALSE)
+  extract <- function(m, line.match, skip = 0, empty.left.col = TRUE) {
+    start <- (skip + which(m == line.match)[1])
+    if (is.na(start))
+      return(NA)
+    if (length(start) < 1)
+      return(NA)
+    mx <- strsplit(m[-(1:(start - 1))], "\t")
+    n.cols <- length(mx[[1]])
+    if (n.cols < 1)
+      return(NA)
+    mxlen <- sapply(mx, length)
+    end <- which(mxlen != n.cols)[1] - 1
+    if (!is.na(end)) {
+      mx <- mx[1:end]
+    }
+    cm <- matrix(unlist(mx), ncol = n.cols, byrow = TRUE)
+    if (empty.left.col)
+      cm <- cm[, -1]
+    col.names <- cm[1, -1]
+    row.names <- cm[, 1][-1]
+    col.names <- gsub("[[:space:]]+", "", col.names)
+    cm <- cm[-1, -1]
+    m <- matrix(as.numeric(cm), nrow = nrow(cm))
+    dimnames(m) <- list(row.names, col.names)
+    return(m)
+  }
+  stats <- extract(log.txt, "OpenBUGS> \t\tmean\tsd\tval2.5pc\tmedian\tval97.5pc\tsample")
+  DIC   <- extract(log.txt, "OpenBUGS> \tDbar\tDhat\tDIC\tpD\t", skip = 0,
+                   empty.left.col = FALSE)
+  list(stats = stats, DIC = DIC)
+}
+
 findUnixBinary <- function(x) {
   tmp <- Sys.getenv(toupper(x))
   if (nchar(tmp) != 0 && file.exists(tmp))
@@ -52,9 +88,9 @@ bugs.log <- function(file) {
 }
 
 
-bugs.inits <- function(inits, n.chains, digits, inits.files = paste("inits", 1:n.chains, ".txt", sep = "")) {
+bugs.inits <- function(inits, n.chains, digits, inits.files = paste("inits", seq_len(n.chains), ".txt", sep = "")) {
   if (!is.null(inits)) {
-    for (i in 1:n.chains) {
+    for (i in seq_len(n.chains)) {
       if (is.function(inits))
         write.datafile(lapply(inits(), formatC, digits = digits, format = "E"), inits.files[i])
        else
@@ -95,8 +131,7 @@ formatdata <- function(datalist) {
 }
 
 
-
-bugs.script <- function(parameters.to.save, n.chains, n.iter, n.burnin, n.thin,
+winbugs.script <- function(parameters.to.save, n.chains, n.iter, n.burnin, n.thin,
                         model.file, debug = FALSE, is.inits, bin, DIC = FALSE,
                         useWINE = .Platform$OS.type != "windows", newWINE = TRUE,
                         WINEPATH = NULL, bugs.seed = NULL, summary.only = FALSE,
@@ -126,7 +161,7 @@ bugs.script <- function(parameters.to.save, n.chains, n.iter, n.burnin, n.thin,
                     native2win(x, useWINE = useWINE, newWINE = newWINE,
                                WINEPATH = WINEPATH)
                   })
-  initlist <- paste("inits (", 1:n.chains, ", '", inits, "')\n", sep = "")
+  initlist <- paste("inits (", seq_len(n.chains), ", '", inits, "')\n", sep = "")
   savelist <- paste("set (", parameters.to.save, ")\n", sep = "")
   redo <- ceiling((n.iter - n.burnin)/(n.thin * bin))
   bugs.seed.cmd <- ""
@@ -148,9 +183,76 @@ bugs.script <- function(parameters.to.save, n.chains, n.iter, n.burnin, n.thin,
       sep = "", append = FALSE)
   if (!debug)
     cat("quit ()\n", file = script, append = TRUE)
-  sims.files <- paste("coda", 1:n.chains, ".txt", sep = "")
-  for (i in 1:n.chains) cat("WinBUGS did not run correctly.\n",
+  sims.files <- paste("coda", seq_len(n.chains), ".txt", sep = "")
+  for (i in seq_len(n.chains)) cat("WinBUGS did not run correctly.\n",
                             file = sims.files[i], append = FALSE)
+}
+
+
+openbugs.script <- function(parameters.to.save, n.chains, n.iter, n.burnin, n.thin,
+                            saveExec, restart, model.file.bug, model.file, debug,
+                            is.inits, DIC, useWINE, newWINE, WINEPATH, bugs.seed,
+                            summary.only, save.history, bugs.data.file,
+                            bugs.inits.files, over.relax) {
+  if ((ceiling(n.iter/n.thin) - ceiling(n.burnin/n.thin)) < 2)
+    stop("(n.iter-n.burnin) must be at least 2")
+  working.directory <- getwd()
+  script <- "script.txt"
+  model <- if (length(grep("\\\\", model.file)) || length(grep("/", model.file))) {
+    gsub("\\\\", "/", model.file)
+  }
+  else file.path(working.directory, model.file)
+  model <- native2win(model, useWINE = useWINE, newWINE = newWINE, WINEPATH = WINEPATH)
+  data <- file.path(working.directory, bugs.data.file)
+  data <- native2win(data, useWINE = useWINE, newWINE = newWINE, WINEPATH = WINEPATH)
+  coda <- file.path(working.directory, "/")
+  coda <- native2win(coda, useWINE = useWINE, newWINE = newWINE, WINEPATH = WINEPATH)
+  model.file.bug <- file.path(working.directory, model.file.bug)
+  model.file.bug <- native2win(model.file.bug, useWINE = useWINE,
+                               newWINE = newWINE, WINEPATH = WINEPATH)
+  logFile <- file.path(working.directory, "log.odc")
+  logFile <- native2win(logFile, useWINE = useWINE, newWINE = newWINE, WINEPATH = WINEPATH)
+  logFileTxt <- file.path(working.directory, "log.txt")
+  logFileTxt <- native2win(logFileTxt, useWINE = useWINE, newWINE = newWINE, WINEPATH = WINEPATH)
+  inits <- paste0(working.directory, "/", bugs.inits.files)
+  inits <- sapply(inits, useWINE = useWINE, newWINE = newWINE,
+                  WINEPATH = WINEPATH, function(x, useWINE, newWINE, WINEPATH) {
+                    native2win(x, useWINE = useWINE, newWINE = newWINE, WINEPATH = WINEPATH)
+                  })
+  initlist <- paste0("modelInits(", "'", inits, "',", seq_len(n.chains), ")\n")
+  savelist <- paste0("samplesSet(", parameters.to.save, ")\n")
+  summarylist <- paste0("summarySet(", parameters.to.save, ")\n")
+  bugs.seed.cmd <- ""
+  if (!is.null(bugs.seed)) {
+    bugs.seed.cmd <- paste0("modelSetRN(", bugs.seed, ")\n")
+  }
+  thinUpdate <- paste0("modelUpdate(", formatC(n.burnin, format = "d"),
+                       ",", n.thin, ",", formatC(n.burnin, format = "d"), ")\n")
+  cat(if (.Platform$OS.type == "windows" | useWINE)
+    "modelDisplay('log')\n", if (restart)
+      c("modelInternalize('", model.file.bug, "')\n"), if (restart && n.burnin > 0)
+        c("samplesClear('*')\n", "summaryClear('*')\n"), if (!restart)
+          c("modelCheck('", model, "')\n", "modelData('", data,
+            "')\n", "modelCompile(", n.chains, ")\n"), if (!restart)
+              bugs.seed.cmd, if (!restart && is.inits)
+                initlist, if (!restart)
+                  "modelGenInits()\n", if (!restart && over.relax)
+                    "over.relax(\"yes\")\n", if ((!restart) || (n.burnin > 0))
+                      c(thinUpdate, savelist, summarylist),
+    if (((!restart) || (n.burnin > 0)) && DIC)
+      "dicSet()\n", "modelUpdate(", formatC(n.iter - n.burnin, format = "d"),
+    ",", n.thin, ",", formatC(n.iter - n.burnin, format = "d"), ")\n",
+    "samplesCoda('*', '", coda, "')\n", "summaryStats('*')\n", if (DIC)
+      "dicStats()\n", if (save.history) "samplesHistory('*')\n", if (saveExec)
+        c("modelExternalize('", model.file.bug, "')\n"),
+    if (.Platform$OS.type == "windows" | useWINE)
+      c("modelSaveLog('", logFile, "')\n", "modelSaveLog('",
+        logFileTxt, "')\n"), file = script, sep = "", append = FALSE)
+  if (!debug)
+    cat("modelQuit('y')\n", file = script, append = TRUE)
+  sims.files <- paste("CODAchain", 1:n.chains, ".txt", sep = "")
+  for (i in seq_len(n.chains))
+    cat("OpenBUGS did not run correctly.\n", file = sims.files[i], append = FALSE)
 }
 
 
@@ -243,6 +345,7 @@ win2native <- function(x, useWINE = .Platform$OS.type != "windows", newWINE = TR
   }
 }
 
+
 winedriveTr <- function(windir, DriveTable = winedriveMap()) {
   win.dr <- substr(windir, 1, 2)
   ind <- pmatch(toupper(win.dr), DriveTable$drive)
@@ -268,6 +371,7 @@ winedriveRTr <- function(unixpath, DriveTable = winedriveMap()) {
   }
   winpath
 }
+
 
 winedriveMap <- function(config = "~/.wine/config") {
   if (!file.exists(config))

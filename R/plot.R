@@ -9,14 +9,15 @@ select_pars <- function(x, cutoff_neff = 100, cutoff_rhat = 1.1) {
 
 #' @title Trace plot of MCMC draws
 #'
-#' @description Trace plot of MCMC draws, following Neff & Rhat criteria
+#' @description Trace plot of MCMC draws that did not converge following Neff & Rhat criteria
 #'
 #' @param x Object of class \code{bugs} or \code{pbugs}.
 #' @param cutoff_neff Maximum threshold of effective sample size to select parameters.
 #' @param cutoff_rhat Minimum threshold of Rhat to select parameters.
+#' @param max_pars Maximum number of parameter to show. Default: 9.
 #' @param ... Additional arguments to be passed to \code{\link[bayesplot]{mcmc_trace}} function.
 #'
-#' @usage  pbugs_trace(x, cutoff_neff = 100, cutoff_rhat = 1.1, ...)
+#' @usage  traceplot(x, cutoff_neff = 100, cutoff_rhat = 1.1, max_pars = 9, ...)
 #'
 #' @seealso \code{\link[bayesplot]{mcmc_trace}}
 #'

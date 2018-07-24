@@ -10,11 +10,12 @@ pbugs(data, inits, parameters.to.save, model.file, n.chains = 3,
   n.sims = 1000, bin = (n.iter - n.burnin) / n.thin,
   debug = FALSE, DIC = TRUE, digits = 5, codaPkg = FALSE,
   bugs.directory = "default", program = c("winbugs", "openbugs"),
-  cluster = NULL, pbugs.directory = "default",
+  cluster = NULL, pbugs.directory = "default", OpenBUGS.pgm = "default",
   working.directory = NULL, clearWD = FALSE,
-  useWINE = .Platform$OS.type != "windows", WINE = "/usr/bin/wine",
-  newWINE = TRUE, WINEPATH = "/usr/bin/winepath", bugs.seed = NULL,
-  summary.only = FALSE, save.history = !summary.only, over.relax = FALSE)
+  useWINE = (.Platform$OS.type != "windows" & program == "winbugs"),
+  WINE = "/usr/bin/wine", newWINE = TRUE, WINEPATH = "/usr/bin/winepath",
+  bugs.seed = NULL, summary.only = FALSE, save.history = FALSE,
+  over.relax = FALSE, saveExec = FALSE, restart = FALSE)
 }
 \arguments{
 \item{data}{List or character. Either a named list (names corresponding to
@@ -87,6 +88,9 @@ use. If not provided, the function will estimate them.}
 Default value is "/home/user/.wine/drive_c/.pbugs" on UNIX OS's and
 "c:/.pbugs" on Windows OS.}
 
+\item{OpenBUGS.pgm}{Character (length 1), default: system dependent
+(Unix-Windows). Path to OpenBUGS binary.}
+
 \item{working.directory}{Character (length 1), default: result from
 \code{getwd}. Working directory.}
 
@@ -117,6 +121,22 @@ in that case.}
 
 \item{over.relax}{Logical, default: FALSE. If TRUE, over-relaxed form of
 MCMC is used if available from WinBUGS.}
+
+\item{saveExec}{If TRUE, a re-startable image of the OpenBUGS execution is
+saved with basename (model.file) and extension .bug in the working directory,
+which must be specified. The .bug files can be large, so users should monitor
+them carefully and remove them when not needed.}
+
+\item{restart}{If TRUE, execution resumes with the final status from the
+previous execution stored in the .bug file in the working directory. If
+n.burnin=0,additional iterations are performed and all iterations since
+the previous burnin are used (including those from past executions). If
+n.burnin>0, a new burnin is performed, and the previous iterations are
+discarded, but execution continues from the status at the end of the
+previous execution. When restart=TRUE, only n.burnin, n.iter, and
+saveExec inputs should be changed from the call creating the .bug file,
+otherwise failed or erratic results may be produced. Note the default
+has n.burnin>0.}
 }
 \value{
 the following values are returned:

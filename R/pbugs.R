@@ -18,11 +18,12 @@
 #'   n.sims = 1000, bin = (n.iter - n.burnin) / n.thin,
 #'   debug = FALSE, DIC = TRUE, digits = 5, codaPkg = FALSE,
 #'   bugs.directory = "default", program = c("winbugs", "openbugs"),
-#'   cluster = NULL, pbugs.directory = "default",
+#'   cluster = NULL, pbugs.directory = "default", OpenBUGS.pgm = "default",
 #'   working.directory = NULL, clearWD = FALSE,
-#'   useWINE = .Platform$OS.type != "windows", WINE = "/usr/bin/wine",
-#'   newWINE = TRUE, WINEPATH = "/usr/bin/winepath", bugs.seed = NULL,
-#'   summary.only = FALSE, save.history = !summary.only, over.relax = FALSE)
+#'   useWINE = (.Platform$OS.type != "windows" & program == "winbugs"),
+#'   WINE = "/usr/bin/wine", newWINE = TRUE, WINEPATH = "/usr/bin/winepath",
+#'   bugs.seed = NULL, summary.only = FALSE, save.history = FALSE,
+#'   over.relax = FALSE, saveExec = FALSE, restart = FALSE)
 #'
 #' @param data List or character. Either a named list (names corresponding to
 #'   variable names in the \code{model.file}) of the data for the WinBUGS model,
@@ -76,6 +77,8 @@
 #' @param pbugs.directory Character (length 1). Path to the pbugs directory.
 #'   Default value is "/home/user/.wine/drive_c/.pbugs" on UNIX OS's and
 #'   "c:/.pbugs" on Windows OS.
+#' @param OpenBUGS.pgm Character (length 1), default: system dependent
+#'   (Unix-Windows). Path to OpenBUGS binary.
 #' @param working.directory Character (length 1), default: result from
 #'   \code{getwd}. Working directory.
 #' @param clearWD Logical, default: TRUE. Should the working directory be
@@ -97,6 +100,20 @@
 #'   in that case.
 #' @param over.relax Logical, default: FALSE. If TRUE, over-relaxed form of
 #'   MCMC is used if available from WinBUGS.
+#' @param saveExec If TRUE, a re-startable image of the OpenBUGS execution is
+#'   saved with basename (model.file) and extension .bug in the working directory,
+#'   which must be specified. The .bug files can be large, so users should monitor
+#'   them carefully and remove them when not needed.
+#' @param restart If TRUE, execution resumes with the final status from the
+#'   previous execution stored in the .bug file in the working directory. If
+#'   n.burnin=0,additional iterations are performed and all iterations since
+#'   the previous burnin are used (including those from past executions). If
+#'   n.burnin>0, a new burnin is performed, and the previous iterations are
+#'   discarded, but execution continues from the status at the end of the
+#'   previous execution. When restart=TRUE, only n.burnin, n.iter, and
+#'   saveExec inputs should be changed from the call creating the .bug file,
+#'   otherwise failed or erratic results may be produced. Note the default
+#'   has n.burnin>0.
 #'
 #' @return the following values are returned:
 #' \item{n.chains}{Number of chains}
@@ -165,11 +182,12 @@ pbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
                   n.sims = 1000, bin = (n.iter - n.burnin) / n.thin,
                   debug = FALSE, DIC = TRUE, digits = 5, codaPkg = FALSE,
                   bugs.directory = "default", program = c("winbugs", "openbugs"),
-                  cluster = NULL, pbugs.directory = "default",
+                  cluster = NULL, pbugs.directory = "default", OpenBUGS.pgm = "default",
                   working.directory = NULL, clearWD = FALSE,
-                  useWINE = .Platform$OS.type != "windows", WINE = "/usr/bin/wine",
-                  newWINE = TRUE, WINEPATH = "/usr/bin/winepath", bugs.seed = NULL,
-                  summary.only = FALSE, save.history = !summary.only, over.relax = FALSE) {
+                  useWINE = (.Platform$OS.type != "windows" & program == "winbugs"),
+                  WINE = "/usr/bin/wine", newWINE = TRUE, WINEPATH = "/usr/bin/winepath",
+                  bugs.seed = NULL, summary.only = FALSE, save.history = FALSE,
+                  over.relax = FALSE, saveExec = FALSE, restart = FALSE) {
 
   stopifnot(is.character(pbugs.directory))
   if (!is.null(cluster)) {
@@ -180,8 +198,8 @@ pbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
   if (pbugs.directory == "default") {
     pbugs.directory <- ifelse(
       .Platform$OS.type == "unix",
-      path.expand("~/.wine/drive_c/.pbugs"),
-      "c:/.pbugs"
+      path.expand(paste0("~/.wine/drive_c/.pbugs/", program)),
+      paste0("c:/.pbugs/", program)
     )
   }
   i_time <- Sys.time()
@@ -191,13 +209,13 @@ pbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
                          bugs.directory, cluster, pbugs.directory, working.directory,
                          clearWD, useWINE, WINE, newWINE, WINEPATH, bugs.seed,
                          summary.only, save.history, over.relax)
-  } # else {
-  #   bugs_obj <- popenbugs(inits, parameters.to.save, model.file, n.chains, n.iter,
-  #                         n.burnin, n.thin, n.sims, bin, debug, DIC, digits, codaPkg,
-  #                         bugs.directory, cluster, pbugs.directory, working.directory,
-  #                         clearWD, useWINE, WINE, newWINE, WINEPATH, bugs.seed,
-  #                         summary.only, save.history, over.relax)
-  # }
+  } else {
+    bugs_obj <- popenbugs(data, inits, parameters.to.save, model.file, n.chains,
+                          n.iter, n.burnin, n.sims, n.thin, saveExec, restart,
+                          OpenBUGS.pgm, bin, debug, DIC, digits, codaPkg, cluster,
+                          working.directory, clearWD, useWINE, WINE, newWINE,
+                          WINEPATH, bugs.seed, summary.only, save.history, over.relax)
+  }
   f_time    <- Sys.time()
   exec_time <- f_time - i_time
   bugs_obj$exec_time <- exec_time

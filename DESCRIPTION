@@ -1,7 +1,7 @@
 Package: pbugs
 Type: Package
-Title: Run WinBUGS Chains in Parallel
-Version: 0.0.0.9003
+Title: Run WinBUGS or OpenBUGS Chains in Parallel
+Version: 0.0.0.9004
 Authors@R: c(
     person("Miguel Ángel", "Martínez-Beneito", email = "martinez_mig@gva.es", role = c("aut", "cre")),
     person("Gonzalo", "García-Donato",         email = "garcia_gon@gva.es",   role = "aut"),
@@ -11,7 +11,7 @@ Authors@R: c(
     person("Carlos", "Vergara-Hernández",      email = "vergara_car@gva.es",  role = "aut")
     )
 Maintainer: Miguel Ángel Martínez-Beneito <martinez_mig@gva.es>
-Description: Call WinBUGS from your R session running multiple chains
+Description: Call WinBUGS or OpenBUGS from your R session running multiple chains
     in parallel. Results are returned in an object of class 'bugs' and 'pbugs'.
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
@@ -25,6 +25,7 @@ Imports:
     coda (>= 0.19-1),
     data.table (>= 1.11.4),
     parallel,
+    R2OpenBUGS (>= 3.2-3.2),
     R2WinBUGS (>= 2.1-21),
     stats
 Suggest: rmarkdown (>= 1.10)
