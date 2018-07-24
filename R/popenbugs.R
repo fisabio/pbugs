@@ -297,7 +297,7 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
   }
   #####################
 
-  class(sims) <- c("bugs", "pbugs")
+  class(sims) <- c("pbugs", "bugs")
   if (!is.null(bugs.seed))
     sims$seed  <- bugs.seed
   sims$n_cores <- cluster
