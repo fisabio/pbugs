@@ -2,7 +2,7 @@
 % Please edit documentation in R/pbugs.R
 \name{pbugs}
 \alias{pbugs}
-\title{Run WinBUGS Chains in Parallel}
+\title{Run WinBUGS or OpenBUGS Chains Chains in Parallel}
 \usage{
 pbugs(data, inits, parameters.to.save, model.file, n.chains = 3,
   n.iter = 2000, n.burnin = floor(n.iter / 2),
@@ -179,15 +179,15 @@ iterations}
 \item{n_cores}{Number of computer cores used}
 }
 \description{
-Call WinBUGS from your R session running multiple chains
-  in parallel. Results are returned in an object of class \code{bugs} and
+Call WinBUGS or OpenBUGS Chains from your R session running multiple
+  chains in parallel. Results are returned in an object of class \code{bugs} and
   \code{pbugs}.
 }
 \details{
 This function basically executes a parallel call to
-  \code{\link[R2WinBUGS]{bugs}}, so it is possible to use almost all the
-  arguments associated with that function (except one: summary.only is set to
-  FALSE). The idea is to minimize code adaptation (by simply adding a p), so
+  \code{\link[R2WinBUGS]{bugs}} or \code{\link[R2OpenBUGS]{bugs}}, so it is
+  possible to use almost all the arguments associated with that function.
+  The idea is to minimize code adaptation (by simply adding a p), so
   that you can start working without the need for a learning process.
 }
 \examples{
@@ -211,4 +211,7 @@ This function basically executes a parallel call to
                      model.file = bugs_model, n.thin = 1, n.chains = 4)
 }
 
+}
+\seealso{
+\code{\link[R2WinBUGS]{bugs}}, \code{\link[R2OpenBUGS]{bugs}}
 }
