@@ -35,32 +35,35 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
       stop(paste("Cannot create directory:", pbugs.directory, "\n"))
     }
     .fileCopy(
-      paste0(bugs.directory, "/System/Rsrc/Registry.odc"),
-      paste0(pbugs.directory, "/Registry_Rsave.odc")
+      file.path(bugs.directory,  "System", "Rsrc", "Registry.odc"),
+      file.path(pbugs.directory, "Registry_Rsave.odc")
     )
   }
   for (i in seq_len(n.chains)) {
-    bugs_exists <- file.exists(paste0(file.path(pbugs.directory, basename(bugs.directory)), "-", i))
+    pbugs_path  <- file.path(pbugs.directory, paste0("WinBUGS14-", i))
+    bugs_exists <- file.exists(pbugs_path)
     if (!bugs_exists) {
       isok1 <- .fileCopy(bugs.directory, pbugs.directory, recursive = TRUE)
       isok2 <- file.rename(
-        file.path(pbugs.directory, basename(bugs.directory)),
-        file.path(pbugs.directory, paste0(basename(bugs.directory), "-", i))
+        file.path(pbugs.directory, "WinBUGS14"),
+        pbugs_path
       )
       if (!isok1 || !isok2) {
         stop("Cannot create WinBUGS copies")
       }
     }
     .fileCopy(
-      paste0(pbugs.directory, "/Registry_Rsave.odc"),
-      paste0(
-        file.path(pbugs.directory, basename(bugs.directory)),
-        "-",
-        i,
-        "/System/Rsrc/Registry.odc"
-      ),
+      file.path(pbugs.directory, "Registry_Rsave.odc"),
+      file.path(pbugs_path, "System", "Rsrc", "Registry.odc"),
       overwrite = TRUE
     )
+
+    met_pbugs <- file.path(pbugs_path, "Updater", "Rsrc", "Methods.odc")
+    met_bugs  <- file.path(bugs.directory, "Updater", "Rsrc", "Methods.odc")
+
+    if (file.info(met_pbugs)[["size"]] != file.info(met_bugs)[["size"]]) {
+      .fileCopy(met_bugs, met_pbugs, overwrite = TRUE)
+    }
   }
   #####################
 
@@ -329,9 +332,11 @@ pwinbugs.run <- function(n.burnin, bugs.directory, cluster, pbugs.directory,
   #####################
   # Pbugs-specific code
   for (i in seq_len(n.chains)) {
-    try(bugs.update.settings(
-      n.burnin       = n.burnin,
-      bugs.directory = file.path(pbugs.directory, paste0(basename(bugs.directory), "-", i)))
+    try(
+      bugs.update.settings(
+        n.burnin       = n.burnin,
+        bugs.directory = file.path(pbugs.directory, paste0("WinBUGS14-", i))
+      )
     )
   }
   #####################
@@ -342,13 +347,9 @@ pwinbugs.run <- function(n.burnin, bugs.directory, cluster, pbugs.directory,
   # Pbugs-specific code
   on.exit(
     .fileCopy(
-      paste0(pbugs.directory, "/Registry_Rsave.odc"),
-      paste0(
-        file.path(pbugs.directory, basename(bugs.directory)),
-        "-",
-        seq_len(n.chains),
-        "/System/Rsrc/Registry.odc"
-      ),
+      file.path(pbugs.directory, "Registry_Rsave.odc"),
+      file.path(pbugs.directory, paste0("WinBUGS14-", seq_len(n.chains)),
+                "System", "Rsrc", "Registry.odc"),
       overwrite = TRUE
     ), add = TRUE
   )
@@ -357,11 +358,11 @@ pwinbugs.run <- function(n.burnin, bugs.directory, cluster, pbugs.directory,
   for (i in seq_len(n.chains)) {
     dos.location <- file.path(
       pbugs.directory,
-      paste0(basename(bugs.directory), "-", i),
+      paste0("WinBUGS14-", i),
       grep("^Win[[:alnum:]]*[.]exe$", list.files(bugs.directory), value = TRUE)[1]
     )
     if (!file.exists(dos.location))
-      stop(paste("WinBUGS executable does not exist in", paste0(basename(bugs.directory), "-", i)))
+      stop(paste("WinBUGS executable does not exist in", paste0("WinBUGS14-", i)))
     bugsCall[i] <- paste0(
       "\"",
       dos.location,

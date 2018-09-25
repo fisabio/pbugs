@@ -1,14 +1,14 @@
 Package: pbugs
 Type: Package
 Title: Run WinBUGS or OpenBUGS Chains in Parallel
-Version: 0.0.0.9004
+Version: 0.1.0
 Authors@R: c(
-    person("Miguel Ángel", "Martínez-Beneito", email = "martinez_mig@gva.es", role = c("aut", "cre")),
-    person("Gonzalo", "García-Donato",         email = "garcia_gon@gva.es",   role = "aut"),
-    person("Paloma", "Botella-Rocamora",       email = "botella_pal@gva.es",  role = "aut"),
-    person("Jordi", "Pérez-Panadés",           email = "perez_jorpan@gva.es", role = "aut"),
-    person("Paqui", "Corpas-Burgos",           email = "corpas_fra@gva.es",   role = "aut"),
-    person("Carlos", "Vergara-Hernández",      email = "vergara_car@gva.es",  role = "aut")
+    person("Miguel Ángel", "Martínez-Beneito",  email = "martinez_mig@gva.es", role = c("aut", "cre")),
+    person("Gonzalo",      "García-Donato",     email = "garcia_gon@gva.es",   role = "aut"),
+    person("Paloma",       "Botella-Rocamora",  email = "botella_pal@gva.es",  role = "aut"),
+    person("Jordi",        "Pérez-Panadés",     email = "perez_jorpan@gva.es", role = "aut"),
+    person("Paqui",        "Corpas-Burgos",     email = "corpas_fra@gva.es",   role = "aut"),
+    person("Carlos",       "Vergara-Hernández", email = "vergara_car@gva.es",  role = "aut")
     )
 Maintainer: Miguel Ángel Martínez-Beneito <martinez_mig@gva.es>
 Description: Call WinBUGS or OpenBUGS from your R session running multiple chains
@@ -16,14 +16,14 @@ Description: Call WinBUGS or OpenBUGS from your R session running multiple chain
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
-SystemRequirements: WinBUGS 1.4
+SystemRequirements: WinBUGS 1.4 or OpenBugs
 URL: https://github.org/fisabio/pbugs
 BugReports: https://github.org/fisabio/pbugs/issues
-Depends: R (>= 3.0.0)
+Depends: R (>= 3.1.0)
 Imports:
-    bayesplot (>= 1.5.0),
     coda (>= 0.19-1),
-    data.table (>= 1.11.4),
+    data.table (>= 1.11.6),
+    graphics,
     parallel,
     R2OpenBUGS (>= 3.2-3.2),
     R2WinBUGS (>= 2.1-21),
