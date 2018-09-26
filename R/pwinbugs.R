@@ -47,12 +47,12 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     }
   }
   for (i in seq_len(n.chains)) {
-    pbugs_path  <- file.path(pbugs.directory, paste0("WinBUGS14-", i))
+    pbugs_path  <- file.path(pbugs.directory, paste0(basename(bugs.directory), i))
     bugs_exists <- file.exists(pbugs_path)
     if (!bugs_exists) {
       isok1 <- .fileCopy(bugs.directory, pbugs.directory, recursive = TRUE)
       isok2 <- file.rename(
-        file.path(pbugs.directory, "WinBUGS14"),
+        file.path(pbugs.directory, basename(bugs.directory)),
         pbugs_path
       )
       if (!isok1 || !isok2) {
@@ -342,7 +342,7 @@ pwinbugs.run <- function(n.burnin, bugs.directory, cluster, pbugs.directory,
     try(
       bugs.update.settings(
         n.burnin       = n.burnin,
-        bugs.directory = file.path(pbugs.directory, paste0("WinBUGS14-", i))
+        bugs.directory = file.path(pbugs.directory, paste0(basename(bugs.directory), i))
       )
     )
   }
@@ -355,7 +355,7 @@ pwinbugs.run <- function(n.burnin, bugs.directory, cluster, pbugs.directory,
   on.exit(
     .fileCopy(
       file.path(pbugs.directory, "Registry_Rsave.odc"),
-      file.path(pbugs.directory, paste0("WinBUGS14-", seq_len(n.chains)),
+      file.path(pbugs.directory, paste0(basename(bugs.directory), seq_len(n.chains)),
                 "System", "Rsrc", "Registry.odc"),
       overwrite = TRUE
     ), add = TRUE
@@ -365,11 +365,11 @@ pwinbugs.run <- function(n.burnin, bugs.directory, cluster, pbugs.directory,
   for (i in seq_len(n.chains)) {
     dos.location <- file.path(
       pbugs.directory,
-      paste0("WinBUGS14-", i),
+      paste0(basename(bugs.directory), i),
       grep("^Win[[:alnum:]]*[.]exe$", list.files(bugs.directory), value = TRUE)[1]
     )
     if (!file.exists(dos.location))
-      stop(paste("WinBUGS executable does not exist in", paste0("WinBUGS14-", i)))
+      stop(paste("WinBUGS executable does not exist in", paste0(basename(bugs.directory), i)))
     bugsCall[i] <- paste0(
       "\"",
       dos.location,
