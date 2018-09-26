@@ -38,6 +38,13 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
       file.path(bugs.directory,  "System", "Rsrc", "Registry.odc"),
       file.path(pbugs.directory, "Registry_Rsave.odc")
     )
+  } else {
+    if (!file.exists(file.path(pbugs.directory, "Registry_Rsave.odc"))) {
+      .fileCopy(
+        file.path(bugs.directory,  "System", "Rsrc", "Registry.odc"),
+        file.path(pbugs.directory, "Registry_Rsave.odc")
+      )
+    }
   }
   for (i in seq_len(n.chains)) {
     pbugs_path  <- file.path(pbugs.directory, paste0("WinBUGS14-", i))
