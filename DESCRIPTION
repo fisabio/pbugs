@@ -1,7 +1,8 @@
 Package: pbugs
 Type: Package
 Title: Run WinBUGS or OpenBUGS Chains in Parallel
-Version: 0.1.2
+Version: 0.1.3
+Date: 2018-10-08
 Authors@R: c(
     person("Miguel Ángel", "Martínez-Beneito",  email = "martinez_mig@gva.es", role = c("aut", "cre")),
     person("Gonzalo",      "García-Donato",     email = "garcia_gon@gva.es",   role = "aut"),

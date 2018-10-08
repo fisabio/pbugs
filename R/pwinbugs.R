@@ -19,7 +19,9 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     warning("Option summary.only = TRUE is not supported by pbugs.",
             "\nsummary.only has been coerced to FALSE\n")
   }
+  copy_met <- TRUE
   if (bugs.directory == "default") {
+    copy_met <- FALSE
     bugs.directory <- ifelse(
       .Platform$OS.type == "unix",
       path.expand("~/.wine/drive_c/Program Files/WinBUGS14"),
@@ -65,11 +67,13 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
       overwrite = TRUE
     )
 
-    met_pbugs <- file.path(pbugs_path, "Updater", "Rsrc", "Methods.odc")
-    met_bugs  <- file.path(bugs.directory, "Updater", "Rsrc", "Methods.odc")
+    if (copy_met) {
+      met_pbugs <- file.path(pbugs_path, "Updater", "Rsrc", "Methods.odc")
+      met_bugs  <- file.path(bugs.directory, "Updater", "Rsrc", "Methods.odc")
 
-    if (file.info(met_pbugs)[["size"]] != file.info(met_bugs)[["size"]]) {
-      .fileCopy(met_bugs, met_pbugs, overwrite = TRUE)
+      if (file.info(met_pbugs)[["size"]] != file.info(met_bugs)[["size"]]) {
+        .fileCopy(met_bugs, met_pbugs, overwrite = TRUE)
+      }
     }
   }
   #####################
