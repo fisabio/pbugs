@@ -20,8 +20,6 @@ select_pars <- function(x, cutoff_neff = 100, cutoff_rhat = 1.1) {
 #'
 #' @usage  traceplot(x, cutoff_neff = 100, cutoff_rhat = 1.1, max_pars = 9, mfrow = c(3, 3), ...)
 #'
-#' @seealso \code{\link[bayesplot]{mcmc_trace}}
-#'
 #' @export
 traceplot <- function(x, cutoff_neff = 100, cutoff_rhat = 1.1, max_pars = 9, mfrow = c(3, 3), ...) {
   stopifnot(any(c("pbugs", "bugs") %in% class(x)))

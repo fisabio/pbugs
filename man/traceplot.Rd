@@ -22,6 +22,3 @@ traceplot(x, cutoff_neff = 100, cutoff_rhat = 1.1, max_pars = 9, mfrow = c(3, 3)
 \description{
 Trace plot of MCMC draws that did not converge following Neff & Rhat criteria
 }
-\seealso{
-\code{\link[bayesplot]{mcmc_trace}}
-}

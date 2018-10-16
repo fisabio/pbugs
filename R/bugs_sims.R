@@ -18,7 +18,12 @@ bugs.sims <- function(parameters.to.save, n.chains, n.iter, n.burnin,
     coda_names <- c("CODAchain", "CODAindex.txt")
   }
   sims.files      <- paste0(coda_names[1], real_chains, ".txt")
-  index           <- data.table::fread(file = coda_names[2])
+  index           <- utils::read.table(
+    file             = coda_names[2],
+    header           = FALSE,
+    sep              = "\t",
+    stringsAsFactors = FALSE
+  )
   parameter.names <- index[[1]]
   n.keep          <- as.numeric(index[1, 3] - index[1, 2] + 1)
   n.parameters    <- length(parameter.names)
@@ -62,7 +67,12 @@ bugs.sims <- function(parameters.to.save, n.chains, n.iter, n.burnin,
   }
   rank.long <- unlist(long.short)
   for (i in seq_len(n.chains)) {
-    sims.i <- data.table::fread(file = sims.files[i])[[2]][seq_len(n.keep * n.parameters)]
+    sims.i <- utils::read.table(
+      file             = sims.files[i],
+      header           = FALSE,
+      sep              = "\t",
+      stringsAsFactors = FALSE
+    )[[2]][seq_len(n.keep * n.parameters)]
     sims[(n.keep * (i - 1) + 1):(n.keep * i), ] <- sims.i
     sims.array[, i, ] <- sims.i
   }
