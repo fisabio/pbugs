@@ -4,20 +4,21 @@
 \alias{traceplot}
 \title{Trace plot of MCMC draws}
 \usage{
-traceplot(x, cutoff_neff = 100, cutoff_rhat = 1.1, max_pars = 9, mfrow = c(3, 3), ...)
+traceplot(x, parameter_name = character(), parameter_pattern = character(),
+only_not_converged = FALSE,  max_pars = 9, ...)
 }
 \arguments{
 \item{x}{Object of class \code{bugs} or \code{pbugs}.}
 
-\item{cutoff_neff}{Maximum threshold of effective sample size to select parameters.}
+\item{parameter_name}{Literal name of the parameters to select.}
 
-\item{cutoff_rhat}{Minimum threshold of Rhat to select parameters.}
+\item{parameter_pattern}{Regular expression (as used in \code{\link[base]{grep}}) for parameter selection.}
+
+\item{only_not_converged}{Select only parameters that did not converged? Dafault = FALSE.}
 
 \item{max_pars}{Maximum number of parameter to show. Default: 9.}
 
-\item{mfrow}{Number of rows and columns in the plot.}
-
-\item{...}{Additional arguments to be passed to \code{\link[coda]{traceplot}} function.}
+\item{...}{Additional arguments to be passed to \code{\link[graphics]{plot}} function.}
 }
 \description{
 Trace plot of MCMC draws that did not converge following Neff & Rhat criteria
