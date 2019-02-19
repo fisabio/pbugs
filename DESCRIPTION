@@ -1,8 +1,8 @@
 Package: pbugs
 Type: Package
 Title: Run WinBUGS or OpenBUGS Chains in Parallel
-Version: 0.1.4
-Date: 2018-10-16
+Version: 0.1.5
+Date: 2019-02-19
 Authors@R: c(
     person("Miguel Ángel", "Martínez-Beneito",  email = "martinez_mig@gva.es", role = c("aut", "cre")),
     person("Gonzalo",      "García-Donato",     email = "garcia_gon@gva.es",   role = "aut"),
@@ -22,7 +22,6 @@ URL: https://github.org/fisabio/pbugs
 BugReports: https://github.org/fisabio/pbugs/issues
 Depends: R (>= 3.1.0)
 Imports:
-    coda (>= 0.19-1),
     graphics,
     parallel,
     R2OpenBUGS (>= 3.2-3.2),
@@ -30,5 +29,5 @@ Imports:
     stats,
     utils
 Suggest: rmarkdown (>= 1.10)
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
 ByteCompile: yes

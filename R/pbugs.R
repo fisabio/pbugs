@@ -22,7 +22,7 @@
 #'   working.directory = NULL, clearWD = FALSE,
 #'   useWINE = (.Platform$OS.type != "windows" & program == "winbugs"),
 #'   WINE = "/usr/bin/wine", newWINE = TRUE, WINEPATH = "/usr/bin/winepath",
-#'   bugs.seed = NULL, summary.only = FALSE, save.history = FALSE,
+#'   bugs.seed = NULL, summary.only = FALSE, save.history = !summary.only,
 #'   over.relax = FALSE, saveExec = FALSE, restart = FALSE)
 #'
 #' @param data List or character. Either a named list (names corresponding to
@@ -188,7 +188,7 @@ pbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
                   working.directory = NULL, clearWD = FALSE,
                   useWINE = (.Platform$OS.type != "windows" & program == "winbugs"),
                   WINE = "/usr/bin/wine", newWINE = TRUE, WINEPATH = "/usr/bin/winepath",
-                  bugs.seed = NULL, summary.only = FALSE, save.history = FALSE,
+                  bugs.seed = NULL, summary.only = FALSE, save.history = !summary.only,
                   over.relax = FALSE, saveExec = FALSE, restart = FALSE) {
 
   stopifnot(is.character(pbugs.directory))

@@ -19,9 +19,7 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     warning("Option summary.only = TRUE is not supported by pbugs.",
             "\nsummary.only has been coerced to FALSE\n")
   }
-  copy_met <- TRUE
   if (bugs.directory == "default") {
-    copy_met <- FALSE
     bugs.directory <- ifelse(
       .Platform$OS.type == "unix",
       path.expand("~/.wine/drive_c/Program Files/WinBUGS14"),
@@ -67,14 +65,11 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
       overwrite = TRUE
     )
 
-    if (copy_met) {
-      met_pbugs <- file.path(pbugs_path, "Updater", "Rsrc", "Methods.odc")
-      met_bugs  <- file.path(bugs.directory, "Updater", "Rsrc", "Methods.odc")
-
-      if (file.info(met_pbugs)[["size"]] != file.info(met_bugs)[["size"]]) {
-        .fileCopy(met_bugs, met_pbugs, overwrite = TRUE)
-      }
-    }
+    .fileCopy(
+      file.path(bugs.directory, "Updater", "Rsrc", "Methods.odc"),
+      file.path(pbugs_path, "Updater", "Rsrc", "Methods.odc"),
+      overwrite = TRUE
+    )
   }
   #####################
 
@@ -83,7 +78,7 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     working.directory <- path.expand(working.directory)
     savedWD <- getwd()
     setwd(working.directory)
-    on.exit(setwd(savedWD))
+    on.exit(setwd(savedWD), add = TRUE)
   } else {
     working.directory <- tempdir()
     if (useWINE) {
@@ -192,56 +187,34 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
   if (is.null(cluster) || cluster > n.chains) {
     cluster <- min(n.chains, max(2, parallel::detectCores() - 1))
   }
-  cl <- parallel::makeCluster(cluster, type = "PSOCK")
-  RNGkind("L'Ecuyer-CMRG")
-  if (!is.null(bugs.seed)) {
-    parallel::clusterSetRNGStream(cl, bugs.seed)
-  }
-  seed <- parallel::parSapply(cl, rep(1, n.chains), FUN = function(x) sample.int(n = 1e+6, size = 1))
-  parallel::stopCluster(cl)
-
-  for (i in seq_len(n.chains)) {
-    working.aux <- file.path(working.directory, "Pbugs-working", paste0("ch", i))
-    try(dir.create(working.aux, showWarnings = F))
-    try(.fileCopy(basename(model.file), file.path(working.aux, basename(model.file)), overwrite = TRUE))
-    try(.fileCopy("data.txt", file.path(working.aux, "data.txt"), overwrite = TRUE))
-    try(.fileCopy(paste0("inits", i, ".txt"), file.path(working.aux, "inits1.txt"), overwrite = TRUE))
-    setwd(working.aux)
-    winbugs.script(
-      parameters.to.save = parameters.to.save,
-      n.chains           = 1,
-      n.iter             = n.iter,
-      n.burnin           = n.burnin,
-      n.thin             = n.thin,
-      model.file         = new.model.file,
-      debug              = debug,
-      is.inits           = !is.null(inits),
-      bin                = bin,
-      DIC                = DIC,
-      useWINE            = useWINE,
-      newWINE            = newWINE,
-      WINEPATH           = WINEPATH,
-      bugs.seed          = seed[i],
-      summary.only       = summary.only,
-      save.history       = save.history,
-      bugs.data.file     = bugs.data.file,
-      bugs.inits.files   = bugs.inits.files[1],
-      over.relax         = over.relax
-    )
-    setwd(working.directory)
-  }
 
   try(pwinbugs.run(
-    n.burnin        = n.burnin,
-    bugs.directory  = bugs.directory,
-    cluster         = cluster,
-    pbugs.directory = pbugs.directory,
-    n.chains        = n.chains,
-    WINE            = WINE,
-    useWINE         = useWINE,
-    newWINE         = newWINE,
-    WINEPATH        = WINEPATH
+    n.burnin           = n.burnin,
+    bugs.directory     = bugs.directory,
+    cluster            = cluster,
+    pbugs.directory    = pbugs.directory,
+    n.chains           = n.chains,
+    WINE               = WINE,
+    useWINE            = useWINE,
+    newWINE            = newWINE,
+    WINEPATH           = WINEPATH,
+    working.directory  = working.directory,
+    new.model.file     = new.model.file,
+    parameters.to.save = parameters.to.save,
+    n.iter             = n.iter,
+    n.thin             = n.thin,
+    debug              = debug,
+    inits              = inits,
+    bin                = bin,
+    DIC                = DIC,
+    summary.only       = summary.only,
+    save.history       = save.history,
+    bugs.data.file     = bugs.data.file,
+    bugs.inits.files   = bugs.inits.files,
+    over.relax         = over.relax,
+    bugs.seed          = bugs.seed
   ))
+
   error_msg <- "WinBUGS did not run correctly."
   error_ch <- which(
     sapply(
@@ -335,7 +308,52 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
 
 pwinbugs.run <- function(n.burnin, bugs.directory, cluster, pbugs.directory,
                          n.chains, useWINE = .Platform$OS.type != "windows",
-                         WINE = NULL, newWINE = TRUE, WINEPATH = NULL) {
+                         WINE = NULL, newWINE = TRUE, WINEPATH = NULL, working.directory,
+                         new.model.file, parameters.to.save, n.iter, n.thin,
+                         debug, inits, bin, DIC, summary.only, save.history, bugs.data.file,
+                         bugs.inits.files, over.relax, bugs.seed) {
+
+
+  .fileCopy <- file.copy
+
+  cl <- parallel::makeCluster(cluster, type = "PSOCK")
+  RNGkind("L'Ecuyer-CMRG")
+  on.exit(parallel::stopCluster(cl), add = TRUE)
+  if (!is.null(bugs.seed)) {
+    parallel::clusterSetRNGStream(cl, bugs.seed)
+  }
+  seed <- parallel::parSapply(cl, rep(1, n.chains), FUN = function(x) sample.int(n = 1e+6, size = 1))
+
+  for (i in seq_len(n.chains)) {
+    working.aux <- file.path(working.directory, "Pbugs-working", paste0("ch", i))
+    try(dir.create(working.aux, showWarnings = F))
+    try(.fileCopy(basename(new.model.file), file.path(working.aux, basename(new.model.file)), overwrite = TRUE))
+    try(.fileCopy("data.txt", file.path(working.aux, "data.txt"), overwrite = TRUE))
+    try(.fileCopy(paste0("inits", i, ".txt"), file.path(working.aux, "inits1.txt"), overwrite = TRUE))
+    setwd(working.aux)
+    winbugs.script(
+      parameters.to.save = parameters.to.save,
+      n.chains           = 1,
+      n.iter             = n.iter,
+      n.burnin           = n.burnin,
+      n.thin             = n.thin,
+      model.file         = new.model.file,
+      debug              = debug,
+      is.inits           = !is.null(inits),
+      bin                = bin,
+      DIC                = DIC,
+      useWINE            = useWINE,
+      newWINE            = newWINE,
+      WINEPATH           = WINEPATH,
+      bugs.seed          = seed[i],
+      summary.only       = summary.only,
+      save.history       = save.history,
+      bugs.data.file     = bugs.data.file,
+      bugs.inits.files   = bugs.inits.files[1],
+      over.relax         = over.relax
+    )
+    setwd(working.directory)
+  }
 
   if (useWINE && (substr(bugs.directory, 2, 2) == ":"))
     bugs.directory <- win2native(bugs.directory, newWINE = newWINE, WINEPATH = WINEPATH)
@@ -350,12 +368,7 @@ pwinbugs.run <- function(n.burnin, bugs.directory, cluster, pbugs.directory,
       )
     )
   }
-  #####################
 
-  .fileCopy <- file.copy
-
-  #####################
-  # Pbugs-specific code
   on.exit(
     .fileCopy(
       file.path(pbugs.directory, "Registry_Rsave.odc"),
@@ -387,9 +400,6 @@ pwinbugs.run <- function(n.burnin, bugs.directory, cluster, pbugs.directory,
     if (useWINE)
       bugsCall[i] <- paste(WINE, bugsCall[i])
   }
-
-  cl <- parallel::makeCluster(cluster, type = "PSOCK")
-  on.exit(parallel::stopCluster(cl), add = TRUE)
 
   temp <- parallel::clusterApply(cl, bugsCall, system)
   .fileCopy(file.path(getwd(), "Pbugs-working", "ch1", "codaIndex.txt"), "codaIndex.txt", overwrite = TRUE)
