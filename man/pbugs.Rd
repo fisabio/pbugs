@@ -85,8 +85,8 @@ requires the package BRugs.}
 use. If not provided, the function will estimate them.}
 
 \item{pbugs.directory}{Character (length 1). Path to the pbugs directory.
-Default value is "/home/user/.wine/drive_c/.pbugs" on UNIX OS's and
-"c:/.pbugs" on Windows OS.}
+Default value is "/home/user/.wine/drive_c/pbugs" on UNIX OS's and
+"c:/pbugs" on Windows OS.}
 
 \item{OpenBUGS.pgm}{Character (length 1), default: system dependent
 (Unix-Windows). Path to OpenBUGS binary.}
