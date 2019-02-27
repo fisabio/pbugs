@@ -75,8 +75,8 @@
 #' @param cluster Integer (length 1), default: NULL. Number of computer cores to
 #'   use. If not provided, the function will estimate them.
 #' @param pbugs.directory Character (length 1). Path to the pbugs directory.
-#'   Default value is "/home/user/.wine/drive_c/.pbugs" on UNIX OS's and
-#'   "c:/.pbugs" on Windows OS.
+#'   Default value is "/home/user/.wine/drive_c/pbugs" on UNIX OS's and
+#'   "c:/pbugs" on Windows OS.
 #' @param OpenBUGS.pgm Character (length 1), default: system dependent
 #'   (Unix-Windows). Path to OpenBUGS binary.
 #' @param working.directory Character (length 1), default: result from
@@ -200,8 +200,8 @@ pbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
   if (pbugs.directory == "default") {
     pbugs.directory <- ifelse(
       .Platform$OS.type == "unix",
-      path.expand(paste0("~/.wine/drive_c/.pbugs/", program)),
-      paste0("c:/.pbugs/", program)
+      path.expand(paste0("~/.wine/drive_c/pbugs/", program)),
+      paste0("c:/pbugs/", program)
     )
   }
   i_time <- Sys.time()

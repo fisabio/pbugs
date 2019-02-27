@@ -30,19 +30,21 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
 
   # Creates, and copies WinBUGS copies to, pbugs.directory
   if (!dir.exists(pbugs.directory)) {
-    isok <- dir.create(pbugs.directory, recursive = TRUE, mode = "0777")
+    isok <- dir.create(pbugs.directory, recursive = TRUE, mode = "777")
     if (!isok) {
       stop(paste("Cannot create directory:", pbugs.directory, "\n"))
     }
     .fileCopy(
       file.path(bugs.directory,  "System", "Rsrc", "Registry.odc"),
-      file.path(pbugs.directory, "Registry_Rsave.odc")
+      file.path(pbugs.directory, "Registry_Rsave.odc"),
+      overwrite = TRUE
     )
   } else {
     if (!file.exists(file.path(pbugs.directory, "Registry_Rsave.odc"))) {
       .fileCopy(
         file.path(bugs.directory,  "System", "Rsrc", "Registry.odc"),
-        file.path(pbugs.directory, "Registry_Rsave.odc")
+        file.path(pbugs.directory, "Registry_Rsave.odc"),
+        overwrite = TRUE
       )
     }
   }
@@ -50,7 +52,7 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     pbugs_path  <- file.path(pbugs.directory, paste0(basename(bugs.directory), "-", i))
     bugs_exists <- file.exists(pbugs_path)
     if (!bugs_exists) {
-      isok1 <- .fileCopy(bugs.directory, pbugs.directory, recursive = TRUE)
+      isok1 <- .fileCopy(bugs.directory, pbugs.directory, recursive = TRUE, overwrite = TRUE)
       isok2 <- file.rename(
         file.path(pbugs.directory, basename(bugs.directory)),
         pbugs_path
@@ -83,8 +85,8 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     working.directory <- tempdir()
     if (useWINE) {
       working.directory <- gsub("//", "/", working.directory)
-      Sys.chmod(working.directory, mode = "770")
-      on.exit(Sys.chmod(working.directory, mode = "700"), add = TRUE)
+      Sys.chmod(working.directory, mode = "777")
+      on.exit(Sys.chmod(working.directory, mode = "777"), add = TRUE)
     }
     savedWD <- getwd()
     setwd(working.directory)
@@ -401,6 +403,7 @@ pwinbugs.run <- function(n.burnin, bugs.directory, cluster, pbugs.directory,
       bugsCall[i] <- paste(WINE, bugsCall[i])
   }
 
+  cat("\npbugs working directory is", dirname(working.aux), "\n")
   temp <- parallel::clusterApply(cl, bugsCall, system)
   .fileCopy(file.path(getwd(), "Pbugs-working", "ch1", "codaIndex.txt"), "codaIndex.txt", overwrite = TRUE)
   for (i in seq_len(n.chains)) {

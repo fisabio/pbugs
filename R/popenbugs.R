@@ -56,8 +56,8 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     working.directory <- tempdir()
     if (useWINE) {
       working.directory <- gsub("//", "/", working.directory)
-      Sys.chmod(working.directory, mode = "770")
-      on.exit(Sys.chmod(working.directory, mode = "700"), add = TRUE)
+      Sys.chmod(working.directory, mode = "777")
+      on.exit(Sys.chmod(working.directory, mode = "777"), add = TRUE)
     }
     savedWD <- getwd()
     setwd(working.directory)
