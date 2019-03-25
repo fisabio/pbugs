@@ -403,7 +403,6 @@ pwinbugs.run <- function(n.burnin, bugs.directory, cluster, pbugs.directory,
       bugsCall[i] <- paste(WINE, bugsCall[i])
   }
 
-  cat("\npbugs working directory is", dirname(working.aux), "\n")
   temp <- parallel::clusterApply(cl, bugsCall, system)
   .fileCopy(file.path(getwd(), "Pbugs-working", "ch1", "codaIndex.txt"), "codaIndex.txt", overwrite = TRUE)
   for (i in seq_len(n.chains)) {
