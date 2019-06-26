@@ -1,29 +1,30 @@
 
-
-#' @title Run WinBUGS or OpenBUGS Chains Chains in Parallel
+#' @title Run \code{WinBUGS} or \code{OpenBUGS} Models in Parallel
 #'
-#' @description Call WinBUGS or OpenBUGS Chains from your R session running multiple
-#'   chains in parallel. Results are returned in an object of class \code{bugs} and
-#'   \code{pbugs}.
+#' @description Run \code{WinBUGS} or \code{OpenBUGS} models from your \code{R}
+#'   session running parallel instances of this programs, one per chain. In this
+#'   manner several cores (one per chain) are used to run the MCMC simulation of
+#'   the corresponding model. Results are returned in an object of class
+#'   \code{bugs} and \code{pbugs}.
 #'
-#' @details This function basically executes a parallel call to
+#' @details This function basically executes parallel calls (one per chain) to
 #'   \code{\link[R2WinBUGS]{bugs}} or \code{\link[R2OpenBUGS]{bugs}}, so it is
-#'   possible to use almost all the arguments associated with that function.
-#'   The idea is to minimize code adaptation (by simply adding a p), so
-#'   that you can start working without the need for a learning process.
+#'   possible to use almost all the arguments associated with those functions.
 #'
-#' @usage pbugs(data, inits, parameters.to.save, model.file, n.chains = 3,
-#'   n.iter = 2000, n.burnin = floor(n.iter / 2),
-#'   n.thin = max(1, floor(n.chains * (n.iter - n.burnin) / n.sims)),
-#'   n.sims = 1000, bin = (n.iter - n.burnin) / n.thin,
-#'   debug = FALSE, DIC = TRUE, digits = 5, codaPkg = FALSE,
-#'   bugs.directory = "default", program = c("winbugs", "openbugs"),
-#'   cluster = NULL, pbugs.directory = "default", OpenBUGS.pgm = "default",
-#'   working.directory = NULL, clearWD = FALSE,
-#'   useWINE = (.Platform$OS.type != "windows" & program == "winbugs"),
-#'   WINE = "/usr/bin/wine", newWINE = TRUE, WINEPATH = "/usr/bin/winepath",
-#'   bugs.seed = NULL, summary.only = FALSE, save.history = !summary.only,
-#'   over.relax = FALSE, saveExec = FALSE, restart = FALSE)
+#'   The idea is to minimize code adaptation from regular \code{bugs} instances.
+#'   Suitable code for the \code{bugs} function should run in principle in
+#'   parallel by simply calling to the \code{pbugs} function with the same
+#'   arguments as the original \code{bugs} call.
+#'
+#'   Aditionally, it is possible to replace WinBUGS' adaptive rejection sampler
+#'   (\code{DFreeARS}) by a \code{Slice} sampler to sort out some classical
+#'   'Traps'. It does not work with OpenBUGS.
+#'
+#' @usage pbugs(data, inits, parameters.to.save, model.file, n.chains = 3, debug
+#'   = FALSE, program = c("winbugs", "openbugs"), bugs.directory = "default",
+#'   cluster = NULL, bugs.seed = NULL, pbugs.directory = "default", slice =
+#'   FALSE, OpenBUGS.pgm = "default", working.directory = NULL, clearWD = FALSE,
+#'   summary.only = FALSE, ...)
 #'
 #' @param data List or character. Either a named list (names corresponding to
 #'   variable names in the \code{model.file}) of the data for the WinBUGS model,
@@ -42,117 +43,48 @@
 #'   \code{\link[R2WinBUGS]{bugs.inits}}.
 #' @param parameters.to.save Character vector of the names of the parameters to
 #'   save which should be monitored.
-#' @param model.file Function or character (length 1). Function or path to the
-#'   file with the WinBUGS model.
+#' @param model.file Function or character (length 1). File containing the model
+#'   written in \code{WinBUGS} code. The extension can be either '\code{.bug}'
+#'   or '\code{.txt}'. If the extension is '\code{.bug}' and \code{program ==
+#'   "WinBUGS"}, a copy of the file with extension \code{'.txt'} will be created
+#'   in the \code{pbugs()} call and removed afterwards. Note that similarly
+#'   named \code{'.txt'} files will be overwritten. Alternatively,
+#'   \code{model.file} can be an R function that contains a BUGS model that is
+#'   written to a temporary model file (see \code{\link[base]{tempfile}}) using
+#'   \code{\link[R2WinBUGS]{write.model}}.
 #' @param n.chains Integer (length 1), default: 3. Number of Markov chains.
-#' @param n.iter Integer (length 1), default: 2000. Number of total iterations per
-#'   chain (including burn in).
-#' @param n.burnin Integer (length 1), default: floor(n.iter / 2). Length of
-#'   burn in (number of iterations to discard at the beginning).
-#' @param n.thin Integer (length 1), default: max(1, floor(n.chains * (n.iter -
-#'   n.burnin)/n.sims)). Thinning rate.
-#' @param n.sims Integer (length 1), default: 1000. The approximate number of
-#'   simulations to keep after thinning.
-#' @param bin Integer (length 1), default: (n.iter - n.burnin) / n.thin. Number
-#'   of iterations between saving of results (i.e. the coda files are saved
-#'   after each bin iterations); default is to save only at the end.
 #' @param debug Logical, default: FALSE. Open WinBUGS in debug mode. It does not
 #'   work with OpenBUGS.
-#' @param DIC Logical, default: TRUE. Compute deviance, pD and DIC.
-#' @param digits Integer (length 1), default: 5. Number of significant digits
-#'   used for WinBUGS input.
-#' @param codaPkg Logical. If FALSE (default) a bugs object is returned, if TRUE
-#'   file names of WinBUGS output are returned for easy access by the
-#'   \code{coda} package through function \code{read.bugs} (not used if
-#'    \code{program="openbugs"}). A \code{bugs}-\code{pbugs} object can be
-#'    converted to an \code{mcmc.list} object as used by the coda package with
-#'    the method \code{as.mcmc.list} (for which a method is provided by R2WinBUGS).
 #' @param bugs.directory Character (length 1), default: system dependent
 #'   (Unix-Windows). Directory where WinBUGS is stored.
 #' @param program Character (length 1), default: winbugs. The program to use,
-#'  either winbugs or openbug. The latter makes use of function openbugs and
-#'  requires the package BRugs.
+#'   either winbugs or openbug. The latter makes use of function openbugs and
+#'   requires the package BRugs.
 #' @param cluster Integer (length 1), default: NULL. Number of computer cores to
 #'   use. If not provided, the function will estimate them.
+#' @param bugs.seed Integer (length 1), default: NULL. Seed for reproducible
+#'   simulations.
 #' @param pbugs.directory Character (length 1). Path to the pbugs directory.
 #'   Default value is "/home/user/.wine/drive_c/pbugs" on UNIX OS's and
 #'   "c:/pbugs" on Windows OS.
+#' @param slice Logical, default: FALSE. Should WinBUGS' adaptive rejection
+#'   sampler (\code{DFreeARS}) be replaced by a \code{Slice} sampler? Useful to
+#'   sort out some \code{Traps}. It does not work with OpenBUGS.
 #' @param OpenBUGS.pgm Character (length 1), default: system dependent
 #'   (Unix-Windows). Path to OpenBUGS binary.
 #' @param working.directory Character (length 1), default: result from
 #'   \code{getwd}. Working directory.
 #' @param clearWD Logical, default: TRUE. Should the working directory be
 #'   cleaned after simulations?
-#' @param useWINE Logical; attempt to use the Wine emulator to run WinBUGS,
-#'   defaults to FALSE on Windows, and TRUE otherwise.
-#' @param WINE Character, path to ‘wine’ binary file, it is tried hard (by a
-#'   guess and the utilities which and locate) to get the information
-#'   automatically if not given.
-#' @param newWINE Logical. Use new versions of Wine that have ‘winepath’ utility.
-#' @param WINEPATH Character, path to ‘winepath’ binary file, it is tried hard
-#'   (by a guess and the utilities which and locate) to get the information
-#'   automatically if not given.
-#' @param bugs.seed Integer (length 1), default: NULL. Seed for reproducible
-#'   simulations.
-#' @param summary.only Set To FALSE on \code{pbugs}.
-#' @param save.history Logical, default: TRUE. If TRUE, only a parameter summary
-#'   for very quick analyses is given, temporary created files are not removed
-#'   in that case.
-#' @param over.relax Logical, default: FALSE. If TRUE, over-relaxed form of
-#'   MCMC is used if available from WinBUGS.
-#' @param saveExec If TRUE, a re-startable image of the OpenBUGS execution is
-#'   saved with basename (model.file) and extension .bug in the working directory,
-#'   which must be specified. The .bug files can be large, so users should monitor
-#'   them carefully and remove them when not needed.
-#' @param restart If TRUE, execution resumes with the final status from the
-#'   previous execution stored in the .bug file in the working directory. If
-#'   n.burnin=0,additional iterations are performed and all iterations since
-#'   the previous burnin are used (including those from past executions). If
-#'   n.burnin>0, a new burnin is performed, and the previous iterations are
-#'   discarded, but execution continues from the status at the end of the
-#'   previous execution. When restart=TRUE, only n.burnin, n.iter, and
-#'   saveExec inputs should be changed from the call creating the .bug file,
-#'   otherwise failed or erratic results may be produced. Note the default
-#'   has n.burnin>0.
+#' @param summary.only Only allowed to be equal to FALSE in \code{pbugs}.
+#' @param ... Additional arguments to be passed to \code{\link[R2WinBUGS]{bugs}}
+#'   or \code{\link[R2OpenBUGS]bugs} functions.
 #'
-#' @return the following values are returned:
-#' \item{n.chains}{Number of chains}
-#' \item{n.iter}{Number of iterations}
-#' \item{n.burnin}{Number of burn in iterations}
-#' \item{n.thin}{Thinning rate}
-#' \item{n.keep}{number of iterations kept per chain (equal to \code{(n.iter -
-#' n.burnin) / n.thin})}
-#' \item{n.sims}{number of posterior simulations (equal to \code{n.chains *
-#' n.keep})}
-#' \item{sims.array}{3-way array of simulation output, with dimensions n.keep,
-#' n.chains, and length of combined parameter vector}
-#' \item{sims.list}{list of simulated parameters:
-#'     for each scalar parameter, a vector of length n.sims
-#'     for each vector parameter, a 2-way array of simulations,
-#'     for each matrix parameter, a 3-way array of simulations, etc.
-#'     (for convenience, the \code{n.keep * n.chains} simulations in sims.matrix
-#'     and sims.list (but NOT sims.array) have been randomly permuted)}
-#' \item{sims.matrix}{matrix of simulation output, with \code{n.chains *
-#' n.keep}rows and one column for each element of each saved parameter (for
-#' convenience, the \code{n.keep * n.chains} simulations in sims.matrix and
-#' sims.list (but NOT sims.array) have been randomly permuted)}
-#' \item{summary}{summary statistics and convergence information for each saved
-#' parameter.}
-#' \item{mean}{a list of the estimated parameter means}
-#' \item{sd}{a list of the estimated parameter standard deviations}
-#' \item{median}{a list of the estimated parameter medians}
-#' \item{root.short}{names of argument \code{parameters.to.save} and deviance}
-#' \item{long.short}{indexes; programming stuff}
-#' \item{dimension.short}{dimension of \code{indexes.short}}
-#' \item{indexes.short}{indexes of \code{root.short}}
-#' \item{last.values}{list of simulations from the most recent iteration; they
-#' can be used as starting points if you wish to run WinBUGS for further
-#' iterations}
-#' \item{pD}{an estimate of the effective number of parameters}
-#' \item{DIC}{\code{mean(deviance) + pD}}
-#' \item{exec_time}{Time of function execution}
-#' \item{seed}{Seed for reproducible simulations}
-#' \item{n_cores}{Number of computer cores used}
+#' @return The arguments in the returned \code{pbugs} object are the same than
+#'   for any \code{\link[R2WinBUGS]{bugs}} or \code{\link[R2OpenBUGS]{bugs}}
+#'   object, plus the following: \item{exec_time}{Execution time taken by the
+#'   function} \item{seed}{Seed used, for reproducible simulations}
+#'   \item{n_cores}{Number of computer cores used}
 #'
 #' @examples
 #'
@@ -179,17 +111,10 @@
 #'
 #' @export
 pbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
-                  n.iter = 2000, n.burnin = floor(n.iter / 2),
-                  n.thin = max(1, floor(n.chains * (n.iter - n.burnin) / n.sims)),
-                  n.sims = 1000, bin = (n.iter - n.burnin) / n.thin,
-                  debug = FALSE, DIC = TRUE, digits = 5, codaPkg = FALSE,
-                  bugs.directory = "default", program = c("winbugs", "openbugs"),
-                  cluster = NULL, pbugs.directory = "default", OpenBUGS.pgm = "default",
-                  working.directory = NULL, clearWD = FALSE,
-                  useWINE = (.Platform$OS.type != "windows" & program == "winbugs"),
-                  WINE = "/usr/bin/wine", newWINE = TRUE, WINEPATH = "/usr/bin/winepath",
-                  bugs.seed = NULL, summary.only = FALSE, save.history = !summary.only,
-                  over.relax = FALSE, saveExec = FALSE, restart = FALSE) {
+                  debug = FALSE, program = c("winbugs", "openbugs"),
+                  bugs.directory = "default", cluster = NULL, bugs.seed = NULL,
+                  pbugs.directory = "default", slice = FALSE, OpenBUGS.pgm = "default",
+                  working.directory = NULL, clearWD = FALSE, summary.only = FALSE, ...) {
 
   stopifnot(is.character(pbugs.directory))
   if (!is.null(cluster)) {
@@ -204,23 +129,74 @@ pbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
       paste0("c:/pbugs/", program)
     )
   }
-  i_time <- Sys.time()
-  if (program == "winbugs") {
-    bugs_obj <- pwinbugs(data, inits, parameters.to.save, model.file, n.chains, n.iter,
-                         n.burnin, n.thin, n.sims, bin, debug, DIC, digits, codaPkg,
-                         bugs.directory, cluster, pbugs.directory, working.directory,
-                         clearWD, useWINE, WINE, newWINE, WINEPATH, bugs.seed,
-                         summary.only, save.history, over.relax)
-  } else {
-    bugs_obj <- popenbugs(data, inits, parameters.to.save, model.file, n.chains,
-                          n.iter, n.burnin, n.sims, n.thin, saveExec, restart,
-                          OpenBUGS.pgm, bin, debug, DIC, digits, codaPkg, cluster,
-                          working.directory, clearWD, useWINE, WINE, newWINE,
-                          WINEPATH, bugs.seed, summary.only, save.history, over.relax)
+  if (summary.only) {
+    warning("Option summary.only = TRUE is not supported by pbugs.",
+            "\nsummary.only has been coerced to FALSE\n")
   }
-  f_time    <- Sys.time()
-  exec_time <- f_time - i_time
-  bugs_obj$exec_time <- exec_time
+  inTempDir <- FALSE
+  if (!is.null(working.directory)) {
+    working.directory <- path.expand(working.directory)
+  } else {
+    working.directory <- tempdir()
+    if (.Platform$OS.type == "unix") {
+      working.directory <- gsub("//", "/", working.directory)
+      Sys.chmod(working.directory, mode = "777")
+      on.exit(Sys.chmod(working.directory, mode = "777"), add = TRUE)
+    }
+    inTempDir <- TRUE
+  }
+  savedWD <- getwd()
+  setwd(working.directory)
+  on.exit(setwd(savedWD), add = TRUE)
 
-  return(bugs_obj)
+  arg_def_val <- c(
+    "n.chains", "n.iter", "n.sims", "DIC", "digits", "codaPkg", "WINE",
+    "newWINE", "WINEPATH", "bugs.seed", "save.history", "over.relax"
+  )
+  arg_def_sym <- c("n.burnin", "n.thin", "bin", "useWINE")
+  my_args     <- formals()
+  my_dots     <- list(...)
+  all_args    <- c(my_args[-length(my_args)], my_dots)
+  bugs_args   <- formals(R2WinBUGS::bugs)
+  bugs_args   <- c(bugs_args[!c(names(bugs_args) %in% names(all_args))])
+  for (i in seq_along(arg_def_val)) {
+    if (!arg_def_val[i] %in% names(my_dots)) {
+      assign(arg_def_val[i], bugs_args[[arg_def_val[i]]])
+    }
+  }
+  for (i in seq_along(arg_def_sym)) {
+    if (!arg_def_sym[i] %in% names(my_dots)) {
+      assign(arg_def_sym[i], eval(bugs_args[[arg_def_sym[i]]]))
+    }
+  }
+
+  i.time <- Sys.time()
+
+  if (program == "winbugs") {
+    if (bugs.directory == "default") {
+      bugs.directory <- ifelse(
+        .Platform$OS.type == "unix",
+        path.expand("~/.wine/drive_c/Program Files/WinBUGS14"),
+        "C:/Program Files/WinBUGS14"
+      )
+    }
+    bugs.obj <- pwinbugs(
+      data, inits, parameters.to.save, model.file, n.chains, n.iter, n.burnin,
+      n.thin, n.sims, bin, debug, DIC, digits, codaPkg, bugs.directory, cluster,
+      pbugs.directory, slice, working.directory, clearWD, useWINE, WINE, newWINE,
+      WINEPATH, bugs.seed, save.history, over.relax, inTempDir, savedWD
+    )
+  } else {
+    bugs.obj <- popenbugs(
+      data, inits, parameters.to.save, model.file, n.chains, n.iter, n.burnin,
+      n.sims, n.thin, saveExec = FALSE, restart = FALSE, OpenBUGS.pgm, bin,
+      debug, DIC, digits, codaPkg, cluster, working.directory, clearWD, useWINE,
+      WINE, newWINE, WINEPATH, bugs.seed, summary.only, save.history, over.relax
+    )
+  }
+  f.time             <- Sys.time()
+  exec.time          <- f.time - i.time
+  bugs.obj$exec.time <- exec.time
+
+  return(bugs.obj)
 }

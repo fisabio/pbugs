@@ -1,12 +1,12 @@
 
-#' @title Run WinBUGS Chains in Parallel
+#' @title Runs WinBUGS or OpenBUGS Models in Parallel
 #'
-#' @description Call WinBUGS from your R session running multiple chains
-#'   in parallel. Results are returned in an object of class \code{bugs} and
-#'   \code{pbugs}.
+#' @description Call WinBUGS or OpenBUGS from your R session running multiple
+#'   chains in parallel. Results are returned in an object of class \code{bugs}
+#'   and \code{pbugs}.
 #'
 #' @details
-#'   Mantainer: Miguel Ángel Martínez-Beneito \email{martinez_mig@@gva.es}
+#'   Mantainer: Carlos Vergara-Hernández \email{vergara_car@@gva.es}
 #'
 #' @name pbugs-package
 #'
@@ -23,7 +23,11 @@
 
 #' @title Sample data for a logistic regression
 #'
-#' @description The data creation script is in /data-raw directory.
+#' @description Simulated data for testing/illustrating purposes. This data set
+#'   can be used to test the package with a logistic regression model, as
+#'   illustrated in the help of the pbugs function.
+#'
+#' @details The data creation script is in the /data-raw directory.
 #'
 #' @name sample_df
 #'
@@ -34,7 +38,8 @@
 #'     \item{x1}{Binomial with prob = 0.7.}
 #'     \item{x2}{Binomial with prob = 0.4.}
 #'     \item{x3}{Normal with mean 40 and sd 10 (mean centered).}
-#'     \item{y}{Response.}
+#'     \item{y}{Binomial with prob \code{plogis(cbind(rep(1, 1000), x1, x2, x3)
+#'     %*% c(-2, 1.3, 1.05, 0.04))}.}
 #'   }
 #'
 #' @keywords datasets

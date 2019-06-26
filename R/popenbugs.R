@@ -9,14 +9,10 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
                      working.directory = NULL, clearWD = FALSE,
                      useWINE = FALSE, WINE = "/usr/bin/wine",
                      newWINE = TRUE, WINEPATH = "/usr/bin/winepath", bugs.seed = NULL,
-                     summary.only = FALSE, save.history = FALSE,
+                     save.history = FALSE,
                      over.relax = FALSE) {
 
-  if (summary.only) {
-    summary.only <- FALSE
-    warning("Option summary.only = TRUE is not supported by pbugs.",
-            "\nsummary.only has been coerced to FALSE\n")
-  }
+  summary.only <- FALSE
   if (OpenBUGS.pgm == "default") {
     OpenBUGS.pgm <- ifelse(
       .Platform$OS.type == "unix",
@@ -217,27 +213,27 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
 
 
 
-  error_msg <- "OpenBUGS did not run correctly."
-  error_ch <- which(
+  error.msg <- "OpenBUGS did not run correctly."
+  error.ch <- which(
     sapply(
       file.path(getwd(), paste0("CODAchain", seq_len(n.chains), ".txt")),
       readLines,
       n = 1
-    ) == error_msg
+    ) == error.msg
   )
-  for (i in seq_along(error_ch)) {
-    warning("Chain ", as.numeric(error_ch[i]), " did not run correctly.",
+  for (i in seq_along(error.ch)) {
+    warning("Chain ", as.numeric(error.ch[i]), " did not run correctly.",
             "\n Look at the log file and try again with 'debug=TRUE' to\n",
             " figure out what went wrong within Bugs.", call. = FALSE)
   }
-  if (length(error_ch) > 0) {
-    warning("Chains without errors: ", n.chains - length(error_ch), " of ", n.chains, call. = FALSE)
-    real_chains <- seq_len(n.chains)[-error_ch]
+  if (length(error.ch) > 0) {
+    warning("Chains without errors: ", n.chains - length(error.ch), " of ", n.chains, call. = FALSE)
+    real.chains <- seq_len(n.chains)[-error.ch]
   } else {
-    real_chains <- seq_len(n.chains)
+    real.chains <- seq_len(n.chains)
   }
 
-  if (codaPkg) return(file.path(getwd(), paste0("CODAchain", real_chains, ".txt")))
+  if (codaPkg) return(file.path(getwd(), paste0("CODAchain", real.chains, ".txt")))
 
 
   #####################
@@ -249,7 +245,7 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
       n.iter             = n.iter,
       n.burnin           = n.burnin,
       n.thin             = n.thin,
-      error_ch           = error_ch,
+      error.ch           = error.ch,
       program            = "openbugs"
     ),
     model.file = model.file,
@@ -262,7 +258,7 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     DIC <- rep(NA, n.chains)
     for (i in seq_len(n.chains)) {
       LOG[[i]] <- openbugs.log(
-        file.path(working.directory, "Pbugs-working", paste0("ch", real_chains[i]), "log.txt")
+        file.path(working.directory, "Pbugs-working", paste0("ch", real.chains[i]), "log.txt")
       )$DIC
     }
     if (any(is.na(LOG))) {
@@ -300,7 +296,7 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
   class(sims) <- c("pbugs", "bugs")
   if (!is.null(bugs.seed))
     sims$seed  <- bugs.seed
-  sims$n_cores <- cluster
+  sims$n.cores <- cluster
 
   return(sims)
 }

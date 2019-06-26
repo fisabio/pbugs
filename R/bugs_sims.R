@@ -1,25 +1,25 @@
 
 bugs.sims <- function(parameters.to.save, n.chains, n.iter, n.burnin,
-                      n.thin, error_ch, program = "winbugs") {
+                      n.thin, error.ch, program = "winbugs") {
 
-  if (length(error_ch) == 0) {
-    real_chains <- seq_len(n.chains)
+  if (length(error.ch) == 0) {
+    real.chains <- seq_len(n.chains)
   } else {
-    if (length(error_ch) == n.chains) {
+    if (length(error.ch) == n.chains) {
       stop("No chain ran properly.")
     }
-    real_chains <- seq_len(n.chains)[-error_ch]
-    n.chains    <- n.chains - length(error_ch)
+    real.chains <- seq_len(n.chains)[-error.ch]
+    n.chains    <- n.chains - length(error.ch)
   }
 
   if (program == "winbugs") {
-    coda_names <- c("coda", "codaIndex.txt")
+    coda.names <- c("coda", "codaIndex.txt")
   } else {
-    coda_names <- c("CODAchain", "CODAindex.txt")
+    coda.names <- c("CODAchain", "CODAindex.txt")
   }
-  sims.files      <- paste0(coda_names[1], real_chains, ".txt")
+  sims.files      <- paste0(coda.names[1], real.chains, ".txt")
   index           <- utils::read.table(
-    file             = coda_names[2],
+    file             = coda.names[2],
     header           = FALSE,
     sep              = "\t",
     stringsAsFactors = FALSE
