@@ -2,7 +2,7 @@ Package: pbugs
 Type: Package
 Title: Runs WinBUGS models in parallel
 Version: 0.2
-Date: 2019-06-26
+Date: 2019-06-28
 Authors@R: c(
     person("Miguel Ángel", "Martínez-Beneito",  email = "martinez_mig@gva.es", role = "aut"),
     person("Carlos",       "Vergara-Hernández", email = "vergara_car@gva.es",  role = "cre")
@@ -16,7 +16,9 @@ LazyData: true
 SystemRequirements: WinBUGS 1.4.3 or OpenBugs 3.2.3
 URL: https://github.com/fisabio/pbugs
 BugReports: https://github.com/fisabio/pbugs/issues
+Depends: R (>= 3.1.0)
 Imports:
+    grDevices,
     graphics,
     parallel,
     R2OpenBUGS,

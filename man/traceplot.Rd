@@ -2,24 +2,47 @@
 % Please edit documentation in R/plot.R
 \name{traceplot}
 \alias{traceplot}
-\title{Trace plot of MCMC draws}
+\title{History plot of selected variables in the model}
 \usage{
-traceplot(x, parameter_name = character(), parameter_pattern = character(),
-only_not_converged = FALSE,  max_pars = 9, ...)
+traceplot(x,var.names = character(), var.pattern = character(),
+  not.converged = FALSE, convergence.criteria = c(100, 1.1), mfrow = c(3, 4),
+  max.devices = 10, ...)
 }
 \arguments{
 \item{x}{Object of class \code{bugs} or \code{pbugs}.}
 
-\item{parameter_name}{Literal name of the parameters to select.}
+\item{var.names}{Character. Vector with the literal names of the variables to
+be plotted.}
 
-\item{parameter_pattern}{Regular expression (as used in \code{\link[base]{grep}}) for parameter selection.}
+\item{var.pattern}{Character. Regular expression (as used in
+\code{\link[base]{grep}}) for selecting the variables to be plotted.}
 
-\item{only_not_converged}{Select only parameters that did not converged? Dafault = FALSE.}
+\item{not.converged}{Logical, default: FALSE. Plot just those variables with
+deficient convergence?}
 
-\item{max_pars}{Maximum number of parameter to show. Default: 9.}
+\item{convergence.criteria}{Numeric vector of length 2 with thresholds for
+the Neff and Rhat criteria. If \code{not.converged} is set to TRUE, all
+those variables with Neff below or Rhat above the set thresholds will be
+plotted. The default thresholds are fixed to 100 for Neff and 1.1 for the
+Rhat criteria.}
 
-\item{...}{Additional arguments to be passed to \code{\link[graphics]{plot}} function.}
+\item{mfrow}{A vector of length 2, specifying the number of rows and columns
+on each device. Equal to c(3,4) by default.}
+
+\item{max.devices}{Maximum number of devices to generate containing the
+requested history plots. Equal to 10 by default.}
+
+\item{...}{Additional arguments to be passed to \code{\link[graphics]{plot}}
+function.}
 }
 \description{
-Trace plot of MCMC draws that did not converge following Neff & Rhat criteria
+History plot of some set of the variables in a \code{bugs} or
+  \code{pbugs} object. This function allows also plotting those variables
+  with deficient converge according to the effective sample size (Neff) &
+  Brooks-Gelman-Rubin (Rhat) criteria.
+}
+\details{
+If \code{length(var.names) == 0 & length(var.pattern) == 0 &
+  !not.converged}, history plots will be plotted for all the variables in the
+  corresponding \code{bugs} or \code{pbugs} object.
 }

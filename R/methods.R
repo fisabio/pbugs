@@ -1,12 +1,14 @@
 
-#' @title Print pbugs objects
+#' @title Print \code{pbugs} objects
 #'
-#' @description S3 Method to print pbugs objects.
+#' @description S3 Method to print \code{pbugs} objects.
 #'
 #' @param x Object of class \code{pbugs}.
 #' @param digits.summary Number of digits to print.
-#' @param order.results Should summary results be ordered by Rhat or n.eff?
-#' @param ... Further arguments to be used for the \code{print} method for \code{bugs} objects (\code{R2WinBUGS} library).
+#' @param order.results Should summary results be ordered by \code{Rhat} or
+#'   \code{n.eff}? No by default.
+#' @param ... Further arguments to be used for the \code{print} method for
+#'   \code{bugs} objects (\code{R2WinBUGS} library).
 #'
 #' @export
 print.pbugs <- function(x, digits.summary = 2, order.results = c("none", "Rhat", "n.eff"), ...) {

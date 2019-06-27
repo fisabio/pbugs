@@ -5,33 +5,29 @@
 \name{pbugs-package}
 \alias{pbugs-package}
 \alias{_PACKAGE}
-\title{Run WinBUGS Chains in Parallel}
+\title{Runs WinBUGS or OpenBUGS Models in Parallel}
 \description{
-Call WinBUGS from your R session running multiple chains
-  in parallel. Results are returned in an object of class \code{bugs} and
-  \code{pbugs}.
+Call WinBUGS or OpenBUGS from your R session running multiple
+  chains in parallel. Results are returned in an object of class \code{bugs}
+  and \code{pbugs}.
 }
 \details{
-Mantainer: Miguel Ángel Martínez-Beneito \email{martinez_mig@gva.es}
+Mantainer: Carlos Vergara-Hernández \email{vergara_car@gva.es}
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.org/fisabio/pbugs}
-  \item Report bugs at \url{https://github.org/fisabio/pbugs/issues}
+  \item \url{https://github.com/fisabio/pbugs}
+  \item Report bugs at \url{https://github.com/fisabio/pbugs/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: Miguel Ángel Martínez-Beneito \email{martinez_mig@gva.es}
+\strong{Maintainer}: Carlos Vergara-Hernández \email{vergara_car@gva.es}
 
 Authors:
 \itemize{
-  \item Gonzalo García-Donato \email{garcia_gon@gva.es}
-  \item Paloma Botella-Rocamora \email{botella_pal@gva.es}
-  \item Jordi Pérez-Panadés \email{perez_jorpan@gva.es}
-  \item Paqui Corpas-Burgos \email{corpas_fra@gva.es}
-  \item Carlos Vergara-Hernández \email{vergara_car@gva.es}
+  \item Miguel Ángel Martínez-Beneito \email{martinez_mig@gva.es}
 }
 
 }

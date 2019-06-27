@@ -2,9 +2,9 @@
 % Please edit documentation in R/methods.R
 \name{print.pbugs}
 \alias{print.pbugs}
-\title{Print pbugs objects}
+\title{Print \code{pbugs} objects}
 \usage{
-\method{print}{pbugs}(x, digits.summary = 2, order_results = c("none",
+\method{print}{pbugs}(x, digits.summary = 2, order.results = c("none",
   "Rhat", "n.eff"), ...)
 }
 \arguments{
@@ -12,10 +12,12 @@
 
 \item{digits.summary}{Number of digits to print.}
 
-\item{order_results}{Should summary results be ordered by Rhat or n.eff?}
+\item{order.results}{Should summary results be ordered by \code{Rhat} or
+\code{n.eff}? No by default.}
 
-\item{...}{Further arguments to use in \code{print}.}
+\item{...}{Further arguments to be used for the \code{print} method for
+\code{bugs} objects (\code{R2WinBUGS} library).}
 }
 \description{
-S3 Method to print pbugs objects.
+S3 Method to print \code{pbugs} objects.
 }

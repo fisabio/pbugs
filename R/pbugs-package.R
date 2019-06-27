@@ -34,13 +34,10 @@
 #' @docType data
 #'
 #' @format A \code{data.frame} with 1000 observations and 4 variables:
-#'   \describe{
-#'     \item{x1}{Binomial with prob = 0.7.}
-#'     \item{x2}{Binomial with prob = 0.4.}
-#'     \item{x3}{Normal with mean 40 and sd 10 (mean centered).}
-#'     \item{y}{Binomial with prob \code{plogis(cbind(rep(1, 1000), x1, x2, x3)
-#'     %*% c(-2, 1.3, 1.05, 0.04))}.}
-#'   }
+#'   \describe{ \item{x1}{Binomial with prob = 0.7.} \item{x2}{Binomial with
+#'   prob = 0.4.} \item{x3}{Normal with mean 40 and sd 10 (mean centered).}
+#'   \item{y}{Binomial with prob \code{plogis(tcrossprod(cbind(rep(1, N), x1,
+#'   x2, x3), t(c(-2, 1.3, 1.05, .04))))}.} }
 #'
 #' @keywords datasets
 #'

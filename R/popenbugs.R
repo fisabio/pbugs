@@ -5,14 +5,12 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
                      saveExec = FALSE, restart = FALSE, OpenBUGS.pgm = "default",
                      bin = (n.iter - n.burnin) / n.thin,
                      debug = FALSE, DIC = TRUE, digits = 5, codaPkg = FALSE,
-                     cluster = cluster,
+                     cluster = cluster, pbugs.directory,
                      working.directory = NULL, clearWD = FALSE,
                      useWINE = FALSE, WINE = "/usr/bin/wine",
                      newWINE = TRUE, WINEPATH = "/usr/bin/winepath", bugs.seed = NULL,
-                     save.history = FALSE,
-                     over.relax = FALSE) {
+                     save.history = FALSE, over.relax = FALSE, inTempDir, savedWD, summary.only) {
 
-  summary.only <- FALSE
   if (OpenBUGS.pgm == "default") {
     OpenBUGS.pgm <- ifelse(
       .Platform$OS.type == "unix",
@@ -24,17 +22,18 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
       "C:/Program Files (x86)/OpenBUGS/OpenBUGS323/OpenBUGS.exe"
     )
   }
+  warning("Options 'saveExec' and 'restart' are not available in pbugs.", call. = FALSE)
   if (!file.exists(OpenBUGS.pgm)) stop("Cannot find the OpenBUGS program")
   if (useWINE && (substr(OpenBUGS.pgm, 2, 2) == ":"))
     OpenBUGS.pgm <- win2native(OpenBUGS.pgm, newWINE = newWINE, WINEPATH = WINEPATH)
 
   #
   #####################
-  if (.Platform$OS.type != "windows") {
+  if (.Platform$OS.type != "windows" & !useWINE) {
     if (debug) stop("The debug option is not available with linux/unix")
     if (save.history) stop("History plots (save.history) are not available with linux/unix")
   }
-  if (!is.null(bugs.seed) %in% 1:14) stop("OpenBUGS seed must be integer in 1:14")
+  if (!is.null(bugs.seed) && !bugs.seed %in% 1:14) stop("OpenBUGS seed must be integer in 1:14")
   if (!is.function(model.file) && length(grep("\\.bug", tolower(model.file))))
     stop("model.file must be renamed with .txt rather than .bug")
   if (is.null(working.directory) && (saveExec || restart))
@@ -42,24 +41,7 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
 
   .fileCopy <- file.copy
 
-  inTempDir <- FALSE
-  if (!is.null(working.directory)) {
-    working.directory <- path.expand(working.directory)
-    savedWD <- getwd()
-    setwd(working.directory)
-    on.exit(setwd(savedWD))
-  } else {
-    working.directory <- tempdir()
-    if (useWINE) {
-      working.directory <- gsub("//", "/", working.directory)
-      Sys.chmod(working.directory, mode = "777")
-      on.exit(Sys.chmod(working.directory, mode = "777"), add = TRUE)
-    }
-    savedWD <- getwd()
-    setwd(working.directory)
-    on.exit(setwd(savedWD), add = TRUE)
-    inTempDir <- TRUE
-  }
+
 
 
   if (!missing(inits) && !is.function(inits) && !is.null(inits) && (length(inits) != n.chains))
@@ -148,7 +130,7 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
 
   #####################
   # Pbugs-specific code
-  try(dir.create(file.path(working.directory, "Pbugs-working"), showWarnings = F))
+  try(dir.create(file.path(working.directory, "Pbugs-working"), showWarnings = FALSE))
 
   if (is.null(cluster) || cluster > n.chains) {
     cluster <- min(n.chains, max(2, parallel::detectCores() - 1))
@@ -210,8 +192,6 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     newWINE         = newWINE,
     WINEPATH        = WINEPATH
   ))
-
-
 
   error.msg <- "OpenBUGS did not run correctly."
   error.ch <- which(
@@ -354,7 +334,8 @@ popenbugs.run <- function(n.burnin, OpenBUGS.pgm, debug = FALSE, cluster,
     temp <- parallel::clusterApply(cl, bugsCall, system, invisible = FALSE)
   } else temp <- parallel::clusterApply(cl, bugsCall, system)
 
-  .fileCopy(file.path(getwd(), "Pbugs-working", "ch1", "CODAindex.txt"), "CODAindex.txt", overwrite = TRUE)
+  coda_index <- file.path(getwd(), "Pbugs-working", paste0("ch", seq_len(n.chains)), "CODAindex.txt")
+  .fileCopy(coda_index[file.exists(coda_index)][1], "CODAindex.txt", overwrite = TRUE)
   for (i in seq_len(n.chains)) {
     .fileCopy(
       file.path(getwd(), "Pbugs-working", paste0("ch", i), "CODAchain1.txt"),

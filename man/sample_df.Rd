@@ -5,17 +5,20 @@
 \alias{sample_df}
 \title{Sample data for a logistic regression}
 \format{A \code{data.frame} with 1000 observations and 4 variables:
-  \describe{
-    \item{x1}{Binomial with prob = 0.7.}
-    \item{x2}{Binomial with prob = 0.4.}
-    \item{x3}{Normal with mean 40 and sd 10 (mean centered).}
-    \item{y}{Response.}
-  }}
+  \describe{ \item{x1}{Binomial with prob = 0.7.} \item{x2}{Binomial with
+  prob = 0.4.} \item{x3}{Normal with mean 40 and sd 10 (mean centered).}
+  \item{y}{Binomial with prob \code{plogis(tcrossprod(cbind(rep(1, N), x1,
+  x2, x3), t(c(-2, 1.3, 1.05, .04))))}.} }}
 \usage{
 sample_df
 }
 \description{
-The data creation script is in /data-raw directory.
+Simulated data for testing/illustrating purposes. This data set
+  can be used to test the package with a logistic regression model, as
+  illustrated in the help of the pbugs function.
+}
+\details{
+The data creation script is in the /data-raw directory.
 }
 \examples{
 data(sample_df)

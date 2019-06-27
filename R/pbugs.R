@@ -20,11 +20,14 @@
 #'   (\code{DFreeARS}) by a \code{Slice} sampler to sort out some classical
 #'   'Traps'. It does not work with OpenBUGS.
 #'
-#' @usage pbugs(data, inits, parameters.to.save, model.file, n.chains = 3, debug
-#'   = FALSE, program = c("winbugs", "openbugs"), bugs.directory = "default",
-#'   cluster = NULL, bugs.seed = NULL, pbugs.directory = "default", slice =
-#'   FALSE, OpenBUGS.pgm = "default", working.directory = NULL, clearWD = FALSE,
-#'   summary.only = FALSE, ...)
+#'   When \code{DIC == TRUE}, DIC is calculated as the mean of the DIC's
+#'   returned in WinBUGS logs.
+#'
+#' @usage pbugs(data, inits, parameters.to.save, model.file, debug = FALSE,
+#'   program = c("winbugs", "openbugs"), bugs.directory = "default", cluster =
+#'   NULL, pbugs.directory = "default", slice = FALSE, OpenBUGS.pgm =
+#'   "default",working.directory = NULL, clearWD = FALSE, summary.only = FALSE,
+#'   ...)
 #'
 #' @param data List or character. Either a named list (names corresponding to
 #'   variable names in the \code{model.file}) of the data for the WinBUGS model,
@@ -52,7 +55,6 @@
 #'   \code{model.file} can be an R function that contains a BUGS model that is
 #'   written to a temporary model file (see \code{\link[base]{tempfile}}) using
 #'   \code{\link[R2WinBUGS]{write.model}}.
-#' @param n.chains Integer (length 1), default: 3. Number of Markov chains.
 #' @param debug Logical, default: FALSE. Open WinBUGS in debug mode. It does not
 #'   work with OpenBUGS.
 #' @param bugs.directory Character (length 1), default: system dependent
@@ -62,8 +64,6 @@
 #'   requires the package BRugs.
 #' @param cluster Integer (length 1), default: NULL. Number of computer cores to
 #'   use. If not provided, the function will estimate them.
-#' @param bugs.seed Integer (length 1), default: NULL. Seed for reproducible
-#'   simulations.
 #' @param pbugs.directory Character (length 1). Path to the pbugs directory.
 #'   Default value is "/home/user/.wine/drive_c/pbugs" on UNIX OS's and
 #'   "c:/pbugs" on Windows OS.
@@ -78,7 +78,7 @@
 #'   cleaned after simulations?
 #' @param summary.only Only allowed to be equal to FALSE in \code{pbugs}.
 #' @param ... Additional arguments to be passed to \code{\link[R2WinBUGS]{bugs}}
-#'   or \code{\link[R2OpenBUGS]bugs} functions.
+#'   or \code{\link[R2OpenBUGS]{bugs}} functions.
 #'
 #' @return The arguments in the returned \code{pbugs} object are the same than
 #'   for any \code{\link[R2WinBUGS]{bugs}} or \code{\link[R2OpenBUGS]{bugs}}
@@ -110,9 +110,9 @@
 #' @seealso \code{\link[R2WinBUGS]{bugs}}, \code{\link[R2OpenBUGS]{bugs}}
 #'
 #' @export
-pbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
+pbugs <- function(data, inits, parameters.to.save, model.file,
                   debug = FALSE, program = c("winbugs", "openbugs"),
-                  bugs.directory = "default", cluster = NULL, bugs.seed = NULL,
+                  bugs.directory = "default", cluster = NULL,
                   pbugs.directory = "default", slice = FALSE, OpenBUGS.pgm = "default",
                   working.directory = NULL, clearWD = FALSE, summary.only = FALSE, ...) {
 
@@ -130,6 +130,7 @@ pbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     )
   }
   if (summary.only) {
+    summary.only <- FALSE
     warning("Option summary.only = TRUE is not supported by pbugs.",
             "\nsummary.only has been coerced to FALSE\n")
   }
@@ -149,27 +150,6 @@ pbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
   setwd(working.directory)
   on.exit(setwd(savedWD), add = TRUE)
 
-  arg_def_val <- c(
-    "n.chains", "n.iter", "n.sims", "DIC", "digits", "codaPkg", "WINE",
-    "newWINE", "WINEPATH", "bugs.seed", "save.history", "over.relax"
-  )
-  arg_def_sym <- c("n.burnin", "n.thin", "bin", "useWINE")
-  my_args     <- formals()
-  my_dots     <- list(...)
-  all_args    <- c(my_args[-length(my_args)], my_dots)
-  bugs_args   <- formals(R2WinBUGS::bugs)
-  bugs_args   <- c(bugs_args[!c(names(bugs_args) %in% names(all_args))])
-  for (i in seq_along(arg_def_val)) {
-    if (!arg_def_val[i] %in% names(my_dots)) {
-      assign(arg_def_val[i], bugs_args[[arg_def_val[i]]])
-    }
-  }
-  for (i in seq_along(arg_def_sym)) {
-    if (!arg_def_sym[i] %in% names(my_dots)) {
-      assign(arg_def_sym[i], eval(bugs_args[[arg_def_sym[i]]]))
-    }
-  }
-
   i.time <- Sys.time()
 
   if (program == "winbugs") {
@@ -181,17 +161,40 @@ pbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
       )
     }
     bugs.obj <- pwinbugs(
-      data, inits, parameters.to.save, model.file, n.chains, n.iter, n.burnin,
-      n.thin, n.sims, bin, debug, DIC, digits, codaPkg, bugs.directory, cluster,
-      pbugs.directory, slice, working.directory, clearWD, useWINE, WINE, newWINE,
-      WINEPATH, bugs.seed, save.history, over.relax, inTempDir, savedWD
+      data               = data,
+      inits              = inits,
+      parameters.to.save = parameters.to.save,
+      model.file         = model.file,
+      debug              = debug,
+      bugs.directory     = bugs.directory,
+      cluster            = cluster,
+      pbugs.directory    = pbugs.directory,
+      slice              = slice,
+      working.directory  = working.directory,
+      clearWD            = clearWD,
+      summary.only       = summary.only,
+      inTempDir          = inTempDir,
+      savedWD            = savedWD,
+      ...
     )
   } else {
     bugs.obj <- popenbugs(
-      data, inits, parameters.to.save, model.file, n.chains, n.iter, n.burnin,
-      n.sims, n.thin, saveExec = FALSE, restart = FALSE, OpenBUGS.pgm, bin,
-      debug, DIC, digits, codaPkg, cluster, working.directory, clearWD, useWINE,
-      WINE, newWINE, WINEPATH, bugs.seed, summary.only, save.history, over.relax
+      data               = data,
+      inits              = inits,
+      parameters.to.save = parameters.to.save,
+      model.file         = model.file,
+      OpenBUGS.pgm       = OpenBUGS.pgm,
+      saveExec           = FALSE,
+      restart            = FALSE,
+      debug              = debug,
+      pbugs.directory    = pbugs.directory,
+      working.directory  = working.directory,
+      clearWD            = clearWD,
+      summary.only       = summary.only,
+      cluster            = cluster,
+      inTempDir          = inTempDir,
+      savedWD            = savedWD,
+      ...
     )
   }
   f.time             <- Sys.time()

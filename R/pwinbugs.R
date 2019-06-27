@@ -1,9 +1,14 @@
 
-pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains, n.iter,
-                     n.burnin, n.thin, n.sims, bin, debug, DIC, digits, codaPkg,
-                     bugs.directory, cluster, pbugs.directory, slice,
-                     working.directory, clearWD, useWINE, WINE, newWINE, WINEPATH,
-                     bugs.seed, save.history, over.relax, inTempDir, savedWD) {
+pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
+                     n.iter = 2000, n.burnin = floor(n.iter/2),
+                     n.thin = max(1, floor(n.chains * (n.iter - n.burnin)/n.sims)),
+                     n.sims = 1000, bin = (n.iter - n.burnin)/n.thin, debug = FALSE,
+                     DIC = TRUE, digits = 5, codaPkg = FALSE, bugs.directory, cluster = NULL,
+                     pbugs.directory, working.directory = NULL, clearWD = FALSE,
+                     useWINE = (.Platform$OS.type != "windows"), WINE = "/usr/bin/wine",
+                     newWINE = TRUE, WINEPATH = "/usr/bin/winepath", bugs.seed = NULL,
+                     summary.only, save.history = !summary.only, over.relax = FALSE,
+                     slice, inTempDir, savedWD) {
 
   if (.Platform$OS.type == "unix")
     Sys.setenv(WINEDEBUG = "err-ole,fixme-all")
