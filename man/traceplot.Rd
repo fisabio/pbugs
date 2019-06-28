@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{traceplot}
 \alias{traceplot}
-\title{History plot of selected variables in the model}
+\title{History Plot of Selected Variables in the Model}
 \usage{
 traceplot(x,var.names = character(), var.pattern = character(),
   not.converged = FALSE, convergence.criteria = c(100, 1.1), mfrow = c(3, 4),

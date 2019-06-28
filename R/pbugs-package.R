@@ -21,11 +21,11 @@
 "_PACKAGE"
 
 
-#' @title Sample data for a logistic regression
+#' @title Sample Data for a Logistic Regression
 #'
 #' @description Simulated data for testing/illustrating purposes. This data set
 #'   can be used to test the package with a logistic regression model, as
-#'   illustrated in the help of the pbugs function.
+#'   illustrated in the help of the \code{pbugs} function.
 #'
 #' @details The data creation script is in the /data-raw directory.
 #'

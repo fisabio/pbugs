@@ -9,8 +9,9 @@ Authors@R: c(
     )
 Maintainer: Carlos Vergara-Hernández <vergara_car@gva.es>
 Description: Call WinBUGS or OpenBUGS from your R session running multiple chains
-    in parallel. Results are returned in an object of class 'bugs' and 'pbugs'.
-License: GPL-3 + file LICENSE
+    in parallel. Results are returned in an object of class 'bugs' and 'pbugs'. 
+    Functions have been adapted from the R2WinBUGS package.
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
 SystemRequirements: WinBUGS 1.4.3 or OpenBugs 3.2.3
@@ -21,10 +22,9 @@ Imports:
     grDevices,
     graphics,
     parallel,
-    R2OpenBUGS,
     R2WinBUGS,
     stats,
     utils
-Suggest: rmarkdown
+Suggest: rmarkdown, R2OpenBUGS
 RoxygenNote: 6.1.1
 ByteCompile: yes

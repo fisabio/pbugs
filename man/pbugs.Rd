@@ -45,8 +45,7 @@ written to a temporary model file (see \code{\link[base]{tempfile}}) using
 work with OpenBUGS.}
 
 \item{program}{Character (length 1), default: winbugs. The program to use,
-either winbugs or openbug. The latter makes use of function openbugs and
-requires the package BRugs.}
+either winbugs or openbugs.}
 
 \item{bugs.directory}{Character (length 1), default: system dependent
 (Unix-Windows). Directory where WinBUGS is stored.}
@@ -74,14 +73,14 @@ cleaned after simulations?}
 \item{summary.only}{Only allowed to be equal to FALSE in \code{pbugs}.}
 
 \item{...}{Additional arguments to be passed to \code{\link[R2WinBUGS]{bugs}}
-or \code{\link[R2OpenBUGS]{bugs}} functions.}
+function.}
 }
 \value{
 The arguments in the returned \code{pbugs} object are the same than
-  for any \code{\link[R2WinBUGS]{bugs}} or \code{\link[R2OpenBUGS]{bugs}}
-  object, plus the following: \item{exec_time}{Execution time taken by the
-  function} \item{seed}{Seed used, for reproducible simulations}
-  \item{n_cores}{Number of computer cores used}
+  for any \code{\link[R2WinBUGS]{bugs}} object, plus the following:
+  \item{exec_time}{Execution time taken by the function} \item{seed}{Seed
+  used, for reproducible simulations} \item{n_cores}{Number of computer cores
+  used}
 }
 \description{
 Run \code{WinBUGS} or \code{OpenBUGS} models from your \code{R}
@@ -92,8 +91,8 @@ Run \code{WinBUGS} or \code{OpenBUGS} models from your \code{R}
 }
 \details{
 This function basically executes parallel calls (one per chain) to
-  \code{\link[R2WinBUGS]{bugs}} or \code{\link[R2OpenBUGS]{bugs}}, so it is
-  possible to use almost all the arguments associated with those functions.
+  \code{\link[R2WinBUGS]{bugs}}, so it is possible to use almost all the
+  arguments associated with those functions.
 
   The idea is to minimize code adaptation from regular \code{bugs} instances.
   Suitable code for the \code{bugs} function should run in principle in
@@ -130,5 +129,5 @@ This function basically executes parallel calls (one per chain) to
 
 }
 \seealso{
-\code{\link[R2WinBUGS]{bugs}}, \code{\link[R2OpenBUGS]{bugs}}
+\code{\link[R2WinBUGS]{bugs}}
 }

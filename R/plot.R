@@ -7,7 +7,7 @@ select.pars <- function(x, cutoff.neff = 100, cutoff.rhat = 1.1) {
 }
 
 
-#' @title History plot of selected variables in the model
+#' @title History Plot of Selected Variables in the Model
 #'
 #' @description History plot of some set of the variables in a \code{bugs} or
 #'   \code{pbugs} object. This function allows also plotting those variables

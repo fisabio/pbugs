@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{print.pbugs}
 \alias{print.pbugs}
-\title{Print \code{pbugs} objects}
+\title{Print \code{pbugs} Objects}
 \usage{
 \method{print}{pbugs}(x, digits.summary = 2, order.results = c("none",
   "Rhat", "n.eff"), ...)

@@ -1,5 +1,5 @@
 
-#' @title Print \code{pbugs} objects
+#' @title Print \code{pbugs} Objects
 #'
 #' @description S3 Method to print \code{pbugs} objects.
 #'

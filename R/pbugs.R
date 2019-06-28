@@ -8,8 +8,8 @@
 #'   \code{bugs} and \code{pbugs}.
 #'
 #' @details This function basically executes parallel calls (one per chain) to
-#'   \code{\link[R2WinBUGS]{bugs}} or \code{\link[R2OpenBUGS]{bugs}}, so it is
-#'   possible to use almost all the arguments associated with those functions.
+#'   \code{\link[R2WinBUGS]{bugs}}, so it is possible to use almost all the
+#'   arguments associated with those functions.
 #'
 #'   The idea is to minimize code adaptation from regular \code{bugs} instances.
 #'   Suitable code for the \code{bugs} function should run in principle in
@@ -56,12 +56,11 @@
 #'   written to a temporary model file (see \code{\link[base]{tempfile}}) using
 #'   \code{\link[R2WinBUGS]{write.model}}.
 #' @param debug Logical, default: FALSE. Open WinBUGS in debug mode. It does not
-#'   work with OpenBUGS.
+#'   work with OpenBUGS in Unix (only through Wine: \code{useWINE == TRUE}).
 #' @param bugs.directory Character (length 1), default: system dependent
 #'   (Unix-Windows). Directory where WinBUGS is stored.
 #' @param program Character (length 1), default: winbugs. The program to use,
-#'   either winbugs or openbug. The latter makes use of function openbugs and
-#'   requires the package BRugs.
+#'   either winbugs or openbugs.
 #' @param cluster Integer (length 1), default: NULL. Number of computer cores to
 #'   use. If not provided, the function will estimate them.
 #' @param pbugs.directory Character (length 1). Path to the pbugs directory.
@@ -78,13 +77,13 @@
 #'   cleaned after simulations?
 #' @param summary.only Only allowed to be equal to FALSE in \code{pbugs}.
 #' @param ... Additional arguments to be passed to \code{\link[R2WinBUGS]{bugs}}
-#'   or \code{\link[R2OpenBUGS]{bugs}} functions.
+#'   function.
 #'
 #' @return The arguments in the returned \code{pbugs} object are the same than
-#'   for any \code{\link[R2WinBUGS]{bugs}} or \code{\link[R2OpenBUGS]{bugs}}
-#'   object, plus the following: \item{exec_time}{Execution time taken by the
-#'   function} \item{seed}{Seed used, for reproducible simulations}
-#'   \item{n_cores}{Number of computer cores used}
+#'   for any \code{\link[R2WinBUGS]{bugs}} object, plus the following:
+#'   \item{exec_time}{Execution time taken by the function} \item{seed}{Seed
+#'   used, for reproducible simulations} \item{n_cores}{Number of computer cores
+#'   used}
 #'
 #' @examples
 #'
@@ -107,7 +106,7 @@
 #'                      model.file = bugs_model, n.thin = 1, n.chains = 4)
 #' }
 #'
-#' @seealso \code{\link[R2WinBUGS]{bugs}}, \code{\link[R2OpenBUGS]{bugs}}
+#' @seealso \code{\link[R2WinBUGS]{bugs}}
 #'
 #' @export
 pbugs <- function(data, inits, parameters.to.save, model.file,
@@ -184,8 +183,6 @@ pbugs <- function(data, inits, parameters.to.save, model.file,
       parameters.to.save = parameters.to.save,
       model.file         = model.file,
       OpenBUGS.pgm       = OpenBUGS.pgm,
-      saveExec           = FALSE,
-      restart            = FALSE,
       debug              = debug,
       pbugs.directory    = pbugs.directory,
       working.directory  = working.directory,

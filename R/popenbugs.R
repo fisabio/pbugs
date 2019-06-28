@@ -22,16 +22,53 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
       "C:/Program Files (x86)/OpenBUGS/OpenBUGS323/OpenBUGS.exe"
     )
   }
-  warning("Options 'saveExec' and 'restart' are not available in pbugs.", call. = FALSE)
+
   if (!file.exists(OpenBUGS.pgm)) stop("Cannot find the OpenBUGS program")
+    if (!dir.exists(pbugs.directory)) {
+    isok <- dir.create(pbugs.directory, recursive = TRUE, mode = "777")
+    if (!isok) {
+      stop(paste("Cannot create directory:", pbugs.directory, "\n"))
+    }
+  }
+
+  arch  <- list.files(dirname(dirname(OpenBUGS.pgm)), recursive = TRUE, full.names = TRUE)
+  arch  <- arch[grep("openbugs", arch, ignore.case = TRUE)]
+  arch2 <- list.files(dirname(dirname(OpenBUGS.pgm)), recursive = TRUE)
+
+  for (i in seq_len(n.chains)) {
+    pbugs.path  <- file.path(pbugs.directory, paste0("OpenBUGS-", i))
+    if (!any(file.exists(file.path(pbugs.path, arch2)))) {
+      invisible(
+        suppressWarnings(
+          sapply(file.path(pbugs.path, unique(dirname(arch2))), dir.create, recursive = TRUE)
+        )
+      )
+      isok <- file.copy(arch, file.path(pbugs.path, arch2))
+      if (!all(isok)) {
+        stop("Cannot create WinBUGS copies")
+      }
+    }
+  }
+
+  if (saveExec) {
+    warning("Option 'saveExec' is not available in pbugs.",
+            "'saveExec' has been coerced to FALSE", call. = FALSE)
+    saveExec <- FALSE
+  }
+  if (restart) {
+    warning("Option 'restart' is not available in pbugs.",
+            "'restart' has been coerced to FALSE", call. = FALSE)
+    restart <- FALSE
+  }
+
   if (useWINE && (substr(OpenBUGS.pgm, 2, 2) == ":"))
     OpenBUGS.pgm <- win2native(OpenBUGS.pgm, newWINE = newWINE, WINEPATH = WINEPATH)
 
   #
   #####################
   if (.Platform$OS.type != "windows" & !useWINE) {
-    if (debug) stop("The debug option is not available with linux/unix")
-    if (save.history) stop("History plots (save.history) are not available with linux/unix")
+    if (debug) stop("The debug option is only available through Wine in unix")
+    if (save.history) stop("History plots ('save.history') are not available in unix")
   }
   if (!is.null(bugs.seed) && !bugs.seed %in% 1:14) stop("OpenBUGS seed must be integer in 1:14")
   if (!is.function(model.file) && length(grep("\\.bug", tolower(model.file))))
@@ -62,7 +99,7 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     } else {
       gsub("\\.tmp$", ".txt", temp)
     }
-    R2OpenBUGS::write.model(model.file, con = temp, digits = digits)
+    R2WinBUGS::write.model(model.file, con = temp, digits = digits)
     model.file <- gsub("\\\\", "/", temp)
   } else {
     if (!file.exists(model.file))
@@ -81,7 +118,7 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
 
 
   if (!(length(data) == 1 && is.vector(data) && is.character(data) && (regexpr("\\.txt$", data) > 0))) {
-    bugs.data.file <- R2OpenBUGS::bugs.data(data, dir = getwd(), digits)
+    bugs.data.file <- R2WinBUGS::bugs.data(data, dir = getwd(), digits)
   } else {
     if (inTempDir && all(basename(data) == data))
       try(file.copy(file.path(savedWD, data), data, overwrite = TRUE))
@@ -185,6 +222,7 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     debug           = debug,
     n.burnin        = n.burnin,
     OpenBUGS.pgm    = OpenBUGS.pgm,
+    pbugs.directory = pbugs.directory,
     cluster         = cluster,
     n.chains        = n.chains,
     WINE            = WINE,
@@ -291,8 +329,8 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
 
 
 
-popenbugs.run <- function(n.burnin, OpenBUGS.pgm, debug = FALSE, cluster,
-                          n.chains, WINE = NULL, WINEPATH = NULL,
+popenbugs.run <- function(n.burnin, OpenBUGS.pgm, pbugs.directory, debug = FALSE,
+                          cluster, n.chains, WINE = NULL, WINEPATH = NULL,
                           useWINE = FALSE, newWINE = TRUE) {
 
   .fileCopy <- file.copy
@@ -300,6 +338,10 @@ popenbugs.run <- function(n.burnin, OpenBUGS.pgm, debug = FALSE, cluster,
   bugsCall <- vector(length = n.chains)
   for (i in seq_len(n.chains)) {
     if (.Platform$OS.type == "windows" || useWINE) {
+      # ME quedo aquí
+
+      pbugs.path  <- file.path(pbugs.directory, paste0("OpenBUGS-", i))
+
       bugsCall[i] <- paste0(
         "\"",
         OpenBUGS.pgm,
@@ -317,8 +359,9 @@ popenbugs.run <- function(n.burnin, OpenBUGS.pgm, debug = FALSE, cluster,
       if (useWINE)
         bugsCall[i] <- paste(WINE, bugsCall[i])
     } else {
+      pbugs.path  <- file.path(pbugs.directory, paste0("OpenBUGS-", i))
       bugsCall[i] <- paste(
-        OpenBUGS.pgm,
+        file.path(pbugs.path, "bin", "OpenBUGSCli"),
         "<",
         file.path(getwd(), "Pbugs-working", paste0("ch", i), "script.txt"),
         ">",
