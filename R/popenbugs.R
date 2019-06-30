@@ -12,15 +12,23 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
                      save.history = FALSE, over.relax = FALSE, inTempDir, savedWD, summary.only) {
 
   if (OpenBUGS.pgm == "default") {
-    OpenBUGS.pgm <- ifelse(
-      .Platform$OS.type == "unix",
-      ifelse(
-        useWINE,
-        path.expand("~/.wine/drive_c/Program Files (x86)/OpenBUGS/OpenBUGS323/OpenBUGS.exe"),
-        "/usr/local/bin/OpenBUGSCli"
-      ),
-      "C:/Program Files (x86)/OpenBUGS/OpenBUGS323/OpenBUGS.exe"
-    )
+    if (.Platform$OS.type == "unix") {
+      if (useWINE) {
+        wine_path    <- list.dirs("~/.wine/drive_c", recursive = FALSE)
+        wine_path    <- file.path(
+          wine_path[grep("program files", wine_path, ignore.case = TRUE)],
+          "OpenBUGS/OpenBUGS323/OpenBUGS.exe")
+        OpenBUGS.pgm <- wine_path[file.exists(wine_path)][1]
+      } else {
+        OpenBUGS.pgm <- "/usr/local/bin/OpenBUGSCli"
+      }
+    } else {
+      windows_path <- list.dirs("C:/", recursive = FALSE)
+      file.path(
+        windows_path <- windows_path[grep("program files", windows_path, ignore.case = TRUE)],
+        "OpenBUGS/OpenBUGS323/OpenBUGS.exe")
+      OpenBUGS.pgm <- windows_path[file.exists(windows_path)][1]
+    }
   }
 
   if (!file.exists(OpenBUGS.pgm)) stop("Cannot find the OpenBUGS program")
