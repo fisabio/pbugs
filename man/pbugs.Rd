@@ -42,7 +42,7 @@ written to a temporary model file (see \code{\link[base]{tempfile}}) using
 \code{\link[R2WinBUGS]{write.model}}.}
 
 \item{debug}{Logical, default: FALSE. Open WinBUGS in debug mode. It does not
-work with OpenBUGS.}
+work with OpenBUGS in Unix (only through Wine: \code{useWINE == TRUE}).}
 
 \item{program}{Character (length 1), default: winbugs. The program to use,
 either winbugs or openbugs.}

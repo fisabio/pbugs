@@ -338,13 +338,17 @@ popenbugs.run <- function(n.burnin, OpenBUGS.pgm, pbugs.directory, debug = FALSE
   bugsCall <- vector(length = n.chains)
   for (i in seq_len(n.chains)) {
     if (.Platform$OS.type == "windows" || useWINE) {
-      # ME quedo aquí
-
       pbugs.path  <- file.path(pbugs.directory, paste0("OpenBUGS-", i))
-
+      pbugs.path  <- list.files(
+        path = pbugs.path,
+        recursive   = TRUE,
+        pattern     = "openbugs\\.exe$",
+        ignore.case = TRUE,
+        full.names  = TRUE
+      )
       bugsCall[i] <- paste0(
         "\"",
-        OpenBUGS.pgm,
+        pbugs.path,
         "\" /PAR \"",
         native2win(
           file.path(getwd(), "Pbugs-working", paste0("ch", i), "script.txt"),
