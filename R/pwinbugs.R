@@ -7,8 +7,30 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
                      pbugs.directory, working.directory = NULL, clearWD = FALSE,
                      useWINE = (.Platform$OS.type != "windows"), WINE = "/usr/bin/wine",
                      newWINE = TRUE, WINEPATH = "/usr/bin/winepath", bugs.seed = NULL,
-                     summary.only, save.history = !summary.only, over.relax = FALSE,
-                     slice, inTempDir, savedWD) {
+                     summary.only = FALSE, save.history = !summary.only, over.relax = FALSE,
+                     slice) {
+
+  if (summary.only) {
+    summary.only <- FALSE
+    warning("Option summary.only = TRUE is not supported by pbugs.",
+            "\nsummary.only has been coerced to FALSE\n")
+  }
+
+  inTempDir <- FALSE
+  if (!is.null(working.directory)) {
+    working.directory <- path.expand(working.directory)
+  } else {
+    working.directory <- tempdir()
+    if (.Platform$OS.type == "unix") {
+      working.directory <- gsub("//", "/", working.directory)
+      Sys.chmod(working.directory, mode = "777")
+      on.exit(Sys.chmod(working.directory, mode = "777"), add = TRUE)
+    }
+    inTempDir <- TRUE
+  }
+  savedWD <- getwd()
+  setwd(working.directory)
+  on.exit(setwd(savedWD), add = TRUE)
 
   if (.Platform$OS.type == "unix")
     Sys.setenv(WINEDEBUG = "err-ole,fixme-all")

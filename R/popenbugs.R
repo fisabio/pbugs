@@ -9,7 +9,7 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
                      working.directory = NULL, clearWD = FALSE,
                      useWINE = FALSE, WINE = "/usr/bin/wine",
                      newWINE = TRUE, WINEPATH = "/usr/bin/winepath", bugs.seed = NULL,
-                     save.history = FALSE, over.relax = FALSE, inTempDir, savedWD, summary.only) {
+                     save.history = FALSE, over.relax = FALSE, summary.only = FALSE) {
 
   if (OpenBUGS.pgm == "default") {
     if (.Platform$OS.type == "unix") {
@@ -31,12 +31,35 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     }
   }
 
+
   if (!file.exists(OpenBUGS.pgm)) stop("Cannot find the OpenBUGS program")
-    if (!dir.exists(pbugs.directory)) {
+  if (!dir.exists(pbugs.directory)) {
     isok <- dir.create(pbugs.directory, recursive = TRUE, mode = "777")
     if (!isok) {
       stop(paste("Cannot create directory:", pbugs.directory, "\n"))
     }
+  }
+
+  inTempDir <- FALSE
+  if (!is.null(working.directory)) {
+    working.directory <- path.expand(working.directory)
+  } else {
+    working.directory <- tempdir()
+    if (.Platform$OS.type == "unix") {
+      working.directory <- gsub("//", "/", working.directory)
+      Sys.chmod(working.directory, mode = "777")
+      on.exit(Sys.chmod(working.directory, mode = "777"), add = TRUE)
+    }
+    inTempDir <- TRUE
+  }
+  savedWD <- getwd()
+  setwd(working.directory)
+  on.exit(setwd(savedWD), add = TRUE)
+
+  if (summary.only) {
+    summary.only <- FALSE
+    warning("Option summary.only = TRUE is not supported by pbugs.",
+            "\nsummary.only has been coerced to FALSE\n")
   }
 
   arch  <- list.files(dirname(dirname(OpenBUGS.pgm)), recursive = TRUE, full.names = TRUE)

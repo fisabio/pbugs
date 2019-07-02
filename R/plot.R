@@ -9,8 +9,8 @@ select.pars <- function(x, cutoff.neff = 100, cutoff.rhat = 1.1) {
 
 #' @title History Plot of Selected Variables in the Model
 #'
-#' @description History plot of some set of the variables in a \code{bugs} or
-#'   \code{pbugs} object. This function allows also plotting those variables
+#' @description History plot for some variables in a \code{bugs} or \code{pbugs}
+#'   object. This function allows also automatically plotting those variables
 #'   with deficient converge according to the effective sample size (Neff) &
 #'   Brooks-Gelman-Rubin (Rhat) criteria.
 #'
@@ -40,6 +40,39 @@ select.pars <- function(x, cutoff.neff = 100, cutoff.rhat = 1.1) {
 #' @usage traceplot(x,var.names = character(), var.pattern = character(),
 #'   not.converged = FALSE, convergence.criteria = c(100, 1.1), mfrow = c(3, 4),
 #'   max.devices = 10, ...)
+#'
+#'
+#' @examples
+#'   \dontrun{
+#'     library(pbugs)
+#'     data(sample_df)
+#'     bugs_model <- function() {
+#'       for (i in 1:N) {
+#'         y[i] ~ dbern(pi[i])
+#'         logit(pi[i]) <- beta[1] + beta[2] * x1[i] + beta[3] * x2[i] + beta[4] * x3[i]
+#'       }
+#'       for (j in 1:4) {
+#'         beta[j] ~ dflat()
+#'       }
+#'     }
+#'     bugs_data <- with(
+#'       sample_df,
+#'       list(y = y, x1 = x1, x2 = x2, x3 = x3, N = length(y))
+#'     )
+#'     bugs_init <- function() list(beta = rnorm(4, sd = .5))
+#'     bugs_pars <- c("beta", "pi")
+#'     result    <- pbugs(
+#'       data               = bugs_data,
+#'       inits              = bugs_init,
+#'       parameters.to.save = bugs_pars,
+#'       model.file         = bugs_model,
+#'       n.thin             = 1,
+#'       n.chains           = 4
+#'     )
+#'     traceplot(result, var.names = c("beta[1]", "beta[3]"))
+#'     traceplot(result, var.pattern = "beta")
+#'     traceplot(result, var.pattern = "beta|pi\\[1\\d?\\]")
+#'   }
 #'
 #' @export
 traceplot <- function(x, var.names = character(), var.pattern = character(),
