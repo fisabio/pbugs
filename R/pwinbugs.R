@@ -104,43 +104,26 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     R2WinBUGS::write.model(model.file, con = temp, digits = digits)
     model.file <- gsub("\\\\", "/", temp)
   } else {
+    if (inTempDir && basename(model.file) == model.file)
+      try(.fileCopy(file.path(savedWD, model.file), model.file, overwrite = TRUE))
     if (!file.exists(model.file))
       stop(paste(model.file, "does not exist."))
     if (file.info(model.file)$isdir)
       stop(paste(model.file, "is a directory, but a file is required."))
   }
 
-  #####################
-  # Pbugs-specific code
-  if (inTempDir && basename(model.file) == model.file)
-    try(.fileCopy(file.path(savedWD, model.file), model.file, overwrite = TRUE))
-  #
-  #####################
-
   if (!(length(data) == 1 && is.vector(data) && is.character(data) && (regexpr("\\.txt$", data) > 0))) {
     bugs.data.file <- R2WinBUGS::bugs.data(data, dir = getwd(), digits = digits)
   } else {
-
-    #####################
-    # Pbugs-specific code
     if (inTempDir && all(basename(data) == data))
       try(.fileCopy(file.path(savedWD, data), data, overwrite = TRUE))
-    #
-    #####################
-
     if (!file.exists(data)) stop("File", data, "does not exist.")
     bugs.data.file <- data
   }
 
   if (is.character(inits)) {
-
-    #####################
-    # Pbugs-specific code
     if (inTempDir && all(basename(inits) == inits))
       try(.fileCopy(file.path(savedWD, inits), inits, overwrite = TRUE))
-    #
-    #####################
-
     if (!all(file.exists(inits))) stop("One or more inits files are missing")
     if (length(inits) != n.chains) stop("Need one inits file for each chain")
     bugs.inits.files <- inits
@@ -153,13 +136,7 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
   if (!length(grep("\\.txt$", tolower(model.file)))) {
     new.model.file <- paste0(basename(model.file), ".txt")
     if (!is.null(working.directory)) new.model.file <- file.path(working.directory, new.model.file)
-
-    #####################
-    # Pbugs-specific code
-    .fileCopy(model.file, new.model.file, overwrite = TRUE)
-    #
-    #####################
-
+   .fileCopy(model.file, new.model.file, overwrite = TRUE)
     on.exit(try(file.remove(new.model.file)), add = TRUE)
   } else {
     new.model.file <- model.file

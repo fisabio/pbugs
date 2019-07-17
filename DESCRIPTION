@@ -1,8 +1,8 @@
 Package: pbugs
 Type: Package
 Title: Runs WinBUGS models in parallel
-Version: 0.2
-Date: 2019-06-28
+Version: 0.2.1
+Date: 2019-07-17
 Authors@R: c(
     person("Miguel Ángel", "Martínez-Beneito",  email = "martinez_mig@gva.es", role = "aut"),
     person("Carlos",       "Vergara-Hernández", email = "vergara_car@gva.es",  role = "cre")
