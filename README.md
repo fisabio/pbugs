@@ -8,8 +8,8 @@ simulated (and your simulation is long enough) this should yield
 computing time improvements close to `1 / n.chains`.
 
 The `pbugs` package heavily depends on the
-[`R2WinBUGS`](https://cran.r-project.org/web/packages/R2WinBUGS/) and
-[`OpenBUGS`](https://cran.r-project.org/web/packages/OpenBUGS/)
+[`R2WinBUGS`](https://CRAN.R-project.org/package=R2WinBUGS) and
+[`R2OpenBUGS`](https://CRAN.R-project.org/package=R2OpenBUGS/)
 libraries. Indeed, any `R` syntax calling to any `R2WinBUGS` or
 `R2OpenBUGS` should work equally when using the `pbugs` package by
 simply replacing any `bugs(...)` sentence by the corresponding

@@ -8,7 +8,7 @@
 #'   \code{bugs} and \code{pbugs} classes.
 #'
 #' @details This function basically executes parallel calls (one per chain) to
-#'   \code{\link[R2WinBUGS]{bugs}}, so it is possible to use almost all the
+#'   \code{R2WinBUGS::bugs}, so it is possible to use almost all the
 #'   arguments associated to that function. The \code{summary.only} argument of
 #'   \code{bugs} can be only set equal to \code{FALSE} in \code{pbugs}.
 #'
@@ -40,7 +40,7 @@
 #'   names of the data objects used by the model. If \code{data} is a one
 #'   element character vector (such as \code{"data.txt"}), it is assumed that
 #'   data have already been written to the working directory into that file,
-#'   e.g. by the function \code{\link[R2WinBUGS]{bugs.data}}. This argument is
+#'   e.g. by the function \code{bugs.data}. This argument is
 #'   also required, with the same format, by the \code{R2WinBUGS::bugs}
 #'   function.
 #' @param inits Function or list (length == n.chains). List with \code{n.chains}
@@ -50,7 +50,7 @@
 #'   by \code{WinBUGS} (if possible). If \code{inits} is a character vector with
 #'   \code{n.chains} elements, it is assumed that inits have already been
 #'   written to the working directory into those files, e.g. by the function
-#'   \code{\link[R2WinBUGS]{bugs.inits}}. This argument is also required, with
+#'   \code{bugs.inits}. This argument is also required, with
 #'   the same format, by the \code{R2WinBUGS::bugs} function.
 #' @param parameters.to.save Character vector of the names of the parameters to
 #'   save which should be monitored. This argument is also required, with the
@@ -63,7 +63,7 @@
 #'   named \code{'.txt'} files will be overwritten. Alternatively,
 #'   \code{model.file} can be an R function that contains a BUGS model that is
 #'   written to a temporary model file (see \code{\link[base]{tempfile}}) using
-#'   \code{\link[R2WinBUGS]{write.model}}. This argument is also required, with
+#'   \code{write.model}. This argument is also required, with
 #'   the same format, by the \code{R2WinBUGS::bugs} function.
 #' @param debug Logical, default: FALSE. Open \code{WinBUGS} in debug mode. It
 #'   does not work for \code{OpenBUGS} in Unix OS's (only through Wine:
@@ -98,11 +98,11 @@
 #'   \code{OpenBUGS} is installed. Several copies (as many as chains to be run)
 #'   of this directory are created at the \code{pbugs.directory} folder, if they
 #'   are not still created.
-#' @param ... Additional arguments to be passed to \code{\link[R2WinBUGS]{bugs}}
+#' @param ... Additional arguments to be passed to \code{R2WinBUGS::bugs}
 #'   function.
 #'
 #' @return The arguments in the returned \code{pbugs} object are the same than
-#'   for any \code{\link[R2WinBUGS]{bugs}} object, plus the following:
+#'   for any \code{R2WinBUGS::bugs} object, plus the following:
 #'   \item{exec_time}{Execution time taken by the function} \item{seed}{Seed
 #'   used, for reproducible simulations} \item{n_cores}{Number of computer cores
 #'   used}
@@ -128,7 +128,7 @@
 #'                      model.file = bugs_model, n.thin = 1, n.chains = 4)
 #' }
 #'
-#' @seealso \code{\link[R2WinBUGS]{bugs}}
+#' @seealso \code{R2WinBUGS::bugs}
 #'
 #' @export
 pbugs <- function(data, inits, parameters.to.save, model.file,

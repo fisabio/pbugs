@@ -78,7 +78,7 @@ bugs.sims <- function(parameters.to.save, n.chains, n.iter, n.burnin,
   }
   dimnames(sims)       <- list(NULL, parameter.names)
   dimnames(sims.array) <- list(NULL, NULL, parameter.names)
-  summary              <- R2WinBUGS::monitor(sims.array, n.chains, keep.all = TRUE)
+  summary              <- monitor(sims.array, n.chains, keep.all = TRUE)
   last.values <- as.list(numeric(n.chains))
   for (i in seq_len(n.chains)) {
     n.roots.0               <- n.roots

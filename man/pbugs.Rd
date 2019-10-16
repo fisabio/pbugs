@@ -16,7 +16,7 @@ model, or (which is not recommended and unsafe) a vector or list of the
 names of the data objects used by the model. If \code{data} is a one
 element character vector (such as \code{"data.txt"}), it is assumed that
 data have already been written to the working directory into that file,
-e.g. by the function \code{\link[R2WinBUGS]{bugs.data}}. This argument is
+e.g. by the function \code{bugs.data}. This argument is
 also required, with the same format, by the \code{R2WinBUGS::bugs}
 function.}
 
@@ -27,7 +27,7 @@ values. Alternatively, if \code{inits = NULL}, initial values are generated
 by \code{WinBUGS} (if possible). If \code{inits} is a character vector with
 \code{n.chains} elements, it is assumed that inits have already been
 written to the working directory into those files, e.g. by the function
-\code{\link[R2WinBUGS]{bugs.inits}}. This argument is also required, with
+\code{bugs.inits}. This argument is also required, with
 the same format, by the \code{R2WinBUGS::bugs} function.}
 
 \item{parameters.to.save}{Character vector of the names of the parameters to
@@ -42,7 +42,7 @@ in the \code{pbugs()} call and removed afterwards. Note that similarly
 named \code{'.txt'} files will be overwritten. Alternatively,
 \code{model.file} can be an R function that contains a BUGS model that is
 written to a temporary model file (see \code{\link[base]{tempfile}}) using
-\code{\link[R2WinBUGS]{write.model}}. This argument is also required, with
+\code{write.model}. This argument is also required, with
 the same format, by the \code{R2WinBUGS::bugs} function.}
 
 \item{debug}{Logical, default: FALSE. Open \code{WinBUGS} in debug mode. It
@@ -85,12 +85,12 @@ argument of the \code{R2WinBUGS::bugs} function. Directory where
 of this directory are created at the \code{pbugs.directory} folder, if they
 are not still created.}
 
-\item{...}{Additional arguments to be passed to \code{\link[R2WinBUGS]{bugs}}
+\item{...}{Additional arguments to be passed to \code{R2WinBUGS::bugs}
 function.}
 }
 \value{
 The arguments in the returned \code{pbugs} object are the same than
-  for any \code{\link[R2WinBUGS]{bugs}} object, plus the following:
+  for any \code{R2WinBUGS::bugs} object, plus the following:
   \item{exec_time}{Execution time taken by the function} \item{seed}{Seed
   used, for reproducible simulations} \item{n_cores}{Number of computer cores
   used}
@@ -104,7 +104,7 @@ Run \code{WinBUGS} or \code{OpenBUGS} models from your \code{R}
 }
 \details{
 This function basically executes parallel calls (one per chain) to
-  \code{\link[R2WinBUGS]{bugs}}, so it is possible to use almost all the
+  \code{R2WinBUGS::bugs}, so it is possible to use almost all the
   arguments associated to that function. The \code{summary.only} argument of
   \code{bugs} can be only set equal to \code{FALSE} in \code{pbugs}.
 
@@ -148,5 +148,5 @@ This function basically executes parallel calls (one per chain) to
 
 }
 \seealso{
-\code{\link[R2WinBUGS]{bugs}}
+\code{R2WinBUGS::bugs}
 }

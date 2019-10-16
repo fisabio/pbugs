@@ -101,7 +101,7 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     } else {
       gsub("\\.tmp$", ".txt", temp)
     }
-    R2WinBUGS::write.model(model.file, con = temp, digits = digits)
+    write.model(model.file, con = temp, digits = digits)
     model.file <- gsub("\\\\", "/", temp)
   } else {
     if (inTempDir && basename(model.file) == model.file)
@@ -113,7 +113,7 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
   }
 
   if (!(length(data) == 1 && is.vector(data) && is.character(data) && (regexpr("\\.txt$", data) > 0))) {
-    bugs.data.file <- R2WinBUGS::bugs.data(data, dir = getwd(), digits = digits)
+    bugs.data.file <- bugs.data(data, dir = getwd(), digits = digits)
   } else {
     if (inTempDir && all(basename(data) == data))
       try(.fileCopy(file.path(savedWD, data), data, overwrite = TRUE))
