@@ -7,8 +7,8 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
                      debug = FALSE, DIC = TRUE, digits = 5, codaPkg = FALSE,
                      cluster = cluster, pbugs.directory,
                      working.directory = NULL, clearWD = FALSE,
-                     useWINE = FALSE, WINE = "/usr/bin/wine",
-                     newWINE = TRUE, WINEPATH = "/usr/bin/winepath", bugs.seed = NULL,
+                     useWINE = FALSE, WINE = "default",
+                     newWINE = TRUE, WINEPATH = "default", bugs.seed = NULL,
                      save.history = FALSE, over.relax = FALSE, summary.only = FALSE) {
 
   if (OpenBUGS.pgm == "default") {
@@ -33,6 +33,14 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
 
 
   if (!file.exists(OpenBUGS.pgm)) stop("Cannot find the OpenBUGS program")
+  if (isTRUE(useWINE)) {
+    if (WINE != "default") {
+      WINE <- findUnixBinary("wine")
+    }
+    if (WINEPATH != "default") {
+      WINEPATH <- findUnixBinary("winepath")
+    }
+  }
   if (!dir.exists(pbugs.directory)) {
     isok <- dir.create(pbugs.directory, recursive = TRUE, mode = "777")
     if (!isok) {
