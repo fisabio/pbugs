@@ -2,22 +2,23 @@ Package: pbugs
 Type: Package
 Title: Run 'WinBUGS' or 'OpenBUGS' Models in Parallel
 Version: 1.0.0
-Date: 2019-10-16
+Date: 2020-10-05
 Authors@R: c(
-    person("Miguel Ángel", "Martínez-Beneito", email = "martinez_mig@gva.es", role = "aut", comment = c(ORCID = "0000-0001-8406-8050")),
+    person("Miguel Ángel", "Martínez-Beneito", email = "miguel.a.martinez@uv.es", role = "aut", comment = c(ORCID = "0000-0001-8406-8050")),
     person("Carlos", "Vergara-Hernández", email = "vergara_car@gva.es", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-7263-856X")),
-    person("Andrew", "Gelman", email = "gelman@stat.columbia.edu", role = "ctb", comment = "R2WinBUGS package author"),
-    person("Sibylle", "Sturtz", email = "sturtz@statistik.tu-dortmund.de", role = "ctb", comment = "R2WinBUGS package author"),
-    person("Uwe", "Ligges", email = "ligges@statistik.tu-dortmund.de", role = "ctb", comment = "R2WinBUGS package author"),
-    person("Gregor", "Gorjanc", email = "gregor.gorjanc@bfro.uni-lj.si", role = "ctb", comment = "R2WinBUGS package author"),
-    person("Jouni", "Kerman", email = "kerman@stat.columbia.edu", role = "ctb", comment = "R2WinBUGS package author"),
-    person("Neal", "Thomas", email = "snthomas99@gmail.com", role = "ctb", comment = "R2OpenBUGS package author")
+    person("Andrew", "Gelman", email = "gelman@stat.columbia.edu", role = "cph", comment = "R2WinBUGS package author"),
+    person("Sibylle", "Sturtz", email = "sturtz@statistik.tu-dortmund.de", role = "cph", comment = "R2WinBUGS package author"),
+    person("Uwe", "Ligges", email = "ligges@statistik.tu-dortmund.de", role = "cph", comment = "R2WinBUGS package author"),
+    person("Gregor", "Gorjanc", email = "gregor.gorjanc@bfro.uni-lj.si", role = "cph", comment = "R2WinBUGS package author"),
+    person("Jouni", "Kerman", email = "kerman@stat.columbia.edu", role = "cph", comment = "R2WinBUGS package author"),
+    person("Neal", "Thomas", email = "snthomas99@gmail.com", role = "cph", comment = "R2OpenBUGS package author")
     )
 Maintainer: Carlos Vergara-Hernández <vergara_car@gva.es>
 Description: Call 'WinBUGS' or 'OpenBUGS' from your R session running multiple chains
     in parallel. Results are returned in an object of class 'bugs' and 'pbugs'. 
-    Functions have been adapted from the 'R2WinBUGS' package (Sturtz, Ligges and Gelman, 2005 <DOI:10.18637/jss.v012.i03>).
-License: GPL-3
+    Functions have been adapted from the 'R2WinBUGS' package (Sturtz, Ligges and Gelman, 2005
+    <DOI:10.18637/jss.v012.i03>) or 'R2OpenBUGS' package.
+License: GPL-2
 Encoding: UTF-8
 LazyData: true
 NeedsCompilation: no
@@ -29,8 +30,9 @@ Imports:
     grDevices,
     graphics,
     parallel,
+    R2WinBUGS,
     stats,
     utils
 Suggests: rmarkdown
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1
 ByteCompile: yes

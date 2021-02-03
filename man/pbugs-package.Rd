@@ -23,21 +23,21 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Carlos Vergara-Hernández \email{vergara_car@gva.es} (0000-0002-7263-856X)
+\strong{Maintainer}: Carlos Vergara-Hernández \email{vergara_car@gva.es} (\href{https://orcid.org/0000-0002-7263-856X}{ORCID})
 
 Authors:
 \itemize{
-  \item Miguel Ángel Martínez-Beneito \email{martinez_mig@gva.es} (0000-0001-8406-8050)
+  \item Miguel Ángel Martínez-Beneito \email{miguel.a.martinez@uv.es} (\href{https://orcid.org/0000-0001-8406-8050}{ORCID})
 }
 
 Other contributors:
 \itemize{
-  \item Andrew Gelman \email{gelman@stat.columbia.edu} (R2WinBUGS package author) [contributor]
-  \item Sibylle Sturtz \email{sturtz@statistik.tu-dortmund.de} (R2WinBUGS package author) [contributor]
-  \item Uwe Ligges \email{ligges@statistik.tu-dortmund.de} (R2WinBUGS package author) [contributor]
-  \item Gregor Gorjanc \email{gregor.gorjanc@bfro.uni-lj.si} (R2WinBUGS package author) [contributor]
-  \item Jouni Kerman \email{kerman@stat.columbia.edu} (R2WinBUGS package author) [contributor]
-  \item Neal Thomas \email{snthomas99@gmail.com} (R2OpenBUGS package author) [contributor]
+  \item Andrew Gelman \email{gelman@stat.columbia.edu} (R2WinBUGS package author) [copyright holder]
+  \item Sibylle Sturtz \email{sturtz@statistik.tu-dortmund.de} (R2WinBUGS package author) [copyright holder]
+  \item Uwe Ligges \email{ligges@statistik.tu-dortmund.de} (R2WinBUGS package author) [copyright holder]
+  \item Gregor Gorjanc \email{gregor.gorjanc@bfro.uni-lj.si} (R2WinBUGS package author) [copyright holder]
+  \item Jouni Kerman \email{kerman@stat.columbia.edu} (R2WinBUGS package author) [copyright holder]
+  \item Neal Thomas \email{snthomas99@gmail.com} (R2OpenBUGS package author) [copyright holder]
 }
 
 }

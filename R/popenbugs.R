@@ -14,20 +14,33 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
   if (OpenBUGS.pgm == "default") {
     if (.Platform$OS.type == "unix") {
       if (useWINE) {
-        wine_path    <- list.dirs("~/.wine/drive_c", recursive = FALSE)
-        wine_path    <- file.path(
-          wine_path[grep("program files", wine_path, ignore.case = TRUE)],
-          "OpenBUGS/OpenBUGS323/OpenBUGS.exe")
-        OpenBUGS.pgm <- wine_path[file.exists(wine_path)][1]
+        OpenBUGS.pgm <- list.files(
+          path       = "~/.wine/drive_c",
+          pattern    = "OpenBUGS\\.exe$",
+          recursive  = TRUE,
+          full.names = TRUE
+        )
       } else {
         OpenBUGS.pgm <- "/usr/local/bin/OpenBUGSCli"
       }
     } else {
       windows_path <- list.dirs("C:/", recursive = FALSE)
-      file.path(
-        windows_path <- windows_path[grep("program files", windows_path, ignore.case = TRUE)],
-        "OpenBUGS/OpenBUGS323/OpenBUGS.exe")
-      OpenBUGS.pgm <- windows_path[file.exists(windows_path)][1]
+      OpenBUGS.pgm <- unique(
+        c(
+          list.files(
+            path       = "c:/Program Files",
+            pattern    = "OpenBUGS\\.exe$",
+            recursive  = TRUE,
+            full.names = TRUE
+          ),
+          list.files(
+            path       = "c:/Program Files (x86)",
+            pattern    = "OpenBUGS\\.exe$",
+            recursive  = TRUE,
+            full.names = TRUE
+            )
+        )
+      )
     }
   }
 

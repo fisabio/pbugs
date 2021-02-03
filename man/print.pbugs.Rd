@@ -4,8 +4,7 @@
 \alias{print.pbugs}
 \title{Print \code{pbugs} Objects}
 \usage{
-\method{print}{pbugs}(x, digits.summary = 2, order.results = c("none",
-  "Rhat", "n.eff"), ...)
+\method{print}{pbugs}(x, digits.summary = 2, order.results = c("none", "Rhat", "n.eff"), ...)
 }
 \arguments{
 \item{x}{Object of class \code{pbugs}.}

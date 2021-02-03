@@ -4,11 +4,13 @@
 \name{sample_df}
 \alias{sample_df}
 \title{Sample Data for a Logistic Regression}
-\format{A \code{data.frame} with 1000 observations and 4 variables:
+\format{
+A \code{data.frame} with 1000 observations and 4 variables:
   \describe{ \item{x1}{Binomial with prob = 0.7.} \item{x2}{Binomial with
   prob = 0.4.} \item{x3}{Normal with mean 40 and sd 10 (mean centered).}
   \item{y}{Binomial with prob \code{plogis(tcrossprod(cbind(rep(1, N), x1,
-  x2, x3), t(c(-2, 1.3, 1.05, .04))))}.} }}
+  x2, x3), t(c(-2, 1.3, 1.05, .04))))}.} }
+}
 \usage{
 sample_df
 }
