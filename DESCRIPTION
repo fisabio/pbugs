@@ -1,8 +1,8 @@
 Package: pbugs
 Type: Package
 Title: Run 'WinBUGS' or 'OpenBUGS' Models in Parallel
-Version: 1.0.0
-Date: 2020-10-05
+Version: 1.0.1
+Date: 2021-04-10
 Authors@R: c(
     person("Miguel Ángel", "Martínez-Beneito", email = "miguel.a.martinez@uv.es", role = "aut", comment = c(ORCID = "0000-0001-8406-8050")),
     person("Carlos", "Vergara-Hernández", email = "vergara_car@gva.es", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-7263-856X")),

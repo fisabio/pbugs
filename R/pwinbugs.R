@@ -278,7 +278,7 @@ pwinbugs.run <- function(n.burnin, bugs.directory, cluster, pbugs.directory, n.c
 
 
   .fileCopy <- file.copy
-  cl <- parallel::makeCluster(cluster, type = "PSOCK")
+  cl <- parallel::makeCluster(cluster, type = "PSOCK", setup_strategy="sequential")
   RNGkind("L'Ecuyer-CMRG")
   on.exit(parallel::stopCluster(cl), add = TRUE)
   if (!is.null(bugs.seed)) {
