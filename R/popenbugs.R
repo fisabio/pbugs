@@ -418,7 +418,7 @@ popenbugs.run <- function(n.burnin, OpenBUGS.pgm, pbugs.directory, debug = FALSE
     }
   }
 
-  cl <- parallel::makeCluster(cluster, type = "PSOCK")
+  cl <- parallel::makeCluster(cluster, type = "PSOCK", setup_strategy = "sequential")
   on.exit(parallel::stopCluster(cl), add = TRUE)
 
   if ((.Platform$OS.type == "windows" || useWINE) && debug) {
