@@ -7,18 +7,29 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
                      debug = FALSE, DIC = TRUE, digits = 5, codaPkg = FALSE,
                      cluster = cluster, pbugs.directory,
                      working.directory = NULL, clearWD = FALSE,
-                     useWINE = FALSE, WINE = "/usr/bin/wine",
-                     newWINE = TRUE, WINEPATH = "/usr/bin/winepath", bugs.seed = NULL,
+                     useWINE = FALSE, WINE = "default",
+                     newWINE = TRUE, WINEPATH = "default", bugs.seed = NULL,
                      save.history = FALSE, over.relax = FALSE, summary.only = FALSE) {
 
   if (OpenBUGS.pgm == "default") {
     if (.Platform$OS.type == "unix") {
       if (useWINE) {
-        OpenBUGS.pgm <- list.files(
-          path       = "~/.wine/drive_c",
-          pattern    = "OpenBUGS\\.exe$",
-          recursive  = TRUE,
-          full.names = TRUE
+        OpenBUGS.pgm <- unique(
+          c(
+            list.files(
+              path       = "~/.wine/drive_c/Program Files (x86)",
+              pattern    = "OpenBUGS\\.exe$",
+              recursive  = TRUE,
+              full.names = TRUE
+            ),
+
+            list.files(
+              path       = "~/.wine/drive_c/Program Files",
+              pattern    = "OpenBUGS\\.exe$",
+              recursive  = TRUE,
+              full.names = TRUE
+            )
+          )
         )
       } else {
         OpenBUGS.pgm <- "/usr/local/bin/OpenBUGSCli"
@@ -46,6 +57,17 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
 
 
   if (!file.exists(OpenBUGS.pgm)) stop("Cannot find the OpenBUGS program")
+
+  if (isTRUE(useWINE)) {
+    if (WINE == "default") {
+      WINE <- findUnixBinary("wine")
+    }
+    if (WINEPATH == "default") {
+      WINEPATH <- findUnixBinary("winepath")
+    }
+    Sys.setenv(WINEDEBUG = "err-ole,fixme-all")
+  }
+
   if (!dir.exists(pbugs.directory)) {
     isok <- dir.create(pbugs.directory, recursive = TRUE, mode = "777")
     if (!isok) {
@@ -122,20 +144,8 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
 
   .fileCopy <- file.copy
 
-
-
-
   if (!missing(inits) && !is.function(inits) && !is.null(inits) && (length(inits) != n.chains))
     stop("Number of initialized chains (length(inits)) != n.chains")
-  if (useWINE) {
-    Sys.setenv(WINEDEBUG = "err-ole,fixme-all")
-    if (is.null(WINE)) {
-      WINE <- findUnixBinary(x = "wine")
-    }
-    if (is.null(WINEPATH)) {
-      WINEPATH <- findUnixBinary(x = "winepath")
-    }
-  }
   if (is.function(model.file)) {
     temp <- tempfile("model")
     temp <- if (.Platform$OS.type != "windows") {
@@ -407,9 +417,9 @@ popenbugs.run <- function(n.burnin, OpenBUGS.pgm, pbugs.directory, debug = FALSE
       if (useWINE)
         bugsCall[i] <- paste(WINE, bugsCall[i])
     } else {
-      pbugs.path  <- file.path(pbugs.directory, paste0("OpenBUGS-", i))
+      pbugs.path  <- OpenBUGS.pgm
       bugsCall[i] <- paste(
-        file.path(pbugs.path, "bin", "OpenBUGSCli"),
+        OpenBUGS.pgm,
         "<",
         file.path(getwd(), "Pbugs-working", paste0("ch", i), "script.txt"),
         ">",

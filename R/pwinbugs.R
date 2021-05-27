@@ -5,8 +5,8 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
                      n.sims = 1000, bin = (n.iter - n.burnin)/n.thin, debug = FALSE,
                      DIC = TRUE, digits = 5, codaPkg = FALSE, bugs.directory, cluster = NULL,
                      pbugs.directory, working.directory = NULL, clearWD = FALSE,
-                     useWINE = (.Platform$OS.type != "windows"), WINE = "/usr/bin/wine",
-                     newWINE = TRUE, WINEPATH = "/usr/bin/winepath", bugs.seed = NULL,
+                     useWINE = (.Platform$OS.type != "windows"), WINE = "default",
+                     newWINE = TRUE, WINEPATH = "default", bugs.seed = NULL,
                      summary.only = FALSE, save.history = !summary.only, over.relax = FALSE,
                      slice) {
 
@@ -32,8 +32,15 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
   setwd(working.directory)
   on.exit(setwd(savedWD), add = TRUE)
 
-  if (.Platform$OS.type == "unix")
+  if (useWINE) {
+    if (WINE == "default") {
+      WINE <- findUnixBinary("wine")
+    }
+    if (WINEPATH == "default") {
+      WINEPATH <- findUnixBinary("winepath")
+    }
     Sys.setenv(WINEDEBUG = "err-ole,fixme-all")
+  }
 
   .fileCopy   <- file.copy
   wb_registry <- system.file("WinBUGS_files/Registry.odc", package = "pbugs")
