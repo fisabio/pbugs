@@ -18,7 +18,7 @@ bugs.sims <- function(parameters.to.save, n.chains, n.iter, n.burnin,
     coda.names <- c("CODAchain", "CODAindex.txt")
   }
   sims.files      <- paste0(coda.names[1], real.chains, ".txt")
-  index           <- utils::read.table(
+  index           <- data.table::fread(
     file             = coda.names[2],
     header           = FALSE,
     sep              = "\t",
@@ -67,7 +67,7 @@ bugs.sims <- function(parameters.to.save, n.chains, n.iter, n.burnin,
   }
   rank.long <- unlist(long.short)
   for (i in seq_len(n.chains)) {
-    sims.i <- utils::read.table(
+    sims.i <- data.table::fread(
       file             = sims.files[i],
       header           = FALSE,
       sep              = "\t",
@@ -78,7 +78,7 @@ bugs.sims <- function(parameters.to.save, n.chains, n.iter, n.burnin,
   }
   dimnames(sims)       <- list(NULL, parameter.names)
   dimnames(sims.array) <- list(NULL, NULL, parameter.names)
-  summary              <- monitor(sims.array, n.chains, keep.all = TRUE)
+  summary              <- R2WinBUGS::monitor(sims.array, n.chains, keep.all = TRUE)
   last.values <- as.list(numeric(n.chains))
   for (i in seq_len(n.chains)) {
     n.roots.0               <- n.roots
@@ -95,7 +95,7 @@ bugs.sims <- function(parameters.to.save, n.chains, n.iter, n.burnin,
       )
     }
   }
-  sims      <- sims[sample(n.sims), , drop = FALSE]
+  # sims      <- sims[sample(n.sims), , drop = FALSE]
   sims.list <- summary.mean <- summary.sd <- summary.median <- vector(n.roots, mode = "list")
   names(sims.list) <- names(summary.mean) <- names(summary.sd) <- names(summary.median) <- root.short
   for (j in seq_len(n.roots)) {

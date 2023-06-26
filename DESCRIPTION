@@ -1,8 +1,8 @@
 Package: pbugs
 Type: Package
 Title: Run 'WinBUGS' or 'OpenBUGS' Models in Parallel
-Version: 1.0.3
-Date: 2021-05-27
+Version: 1.0.1
+Date: 2023-06-26
 Authors@R: c(
     person("Miguel Ángel", "Martínez-Beneito", email = "miguel.a.martinez@uv.es", role = "aut", comment = c(ORCID = "0000-0001-8406-8050")),
     person("Carlos", "Vergara-Hernández", email = "vergara_car@gva.es", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-7263-856X")),
@@ -25,14 +25,14 @@ NeedsCompilation: no
 SystemRequirements: WinBUGS (1.4.3) or OpenBUGS (>= 3.2.3)
 URL: https://github.com/fisabio/pbugs
 BugReports: https://github.com/fisabio/pbugs/issues
-Depends: R (>= 3.1.0)
+Depends: R (>= 3.3.0)
 Imports:
     grDevices,
     graphics,
     parallel,
     R2WinBUGS,
     stats,
-    utils
+    data.table
 Suggests: rmarkdown
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.3
 ByteCompile: yes

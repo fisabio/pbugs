@@ -20,51 +20,34 @@ findUnixBinary <- function(x) {
 }
 
 
-bugs.log <- function(file) {
-  # Function from the 'R2WinBUGS' package
-
-  if (!file.exists(file))
-    stop("Log file", file, "does not exist")
-  log.txt <- readLines(file, warn = FALSE)
-  extract <- function(m, line.match, skip = 0, empty.left.col = TRUE) {
-    start <- (skip + which(m == line.match)[1])
-    if (is.na(start))
-      return(NA)
-    if (length(start) < 1)
-      return(NA)
-    mx <- strsplit(m[-(1:start)], "\t")
-    n.cols <- length(mx[[1]])
-    if (n.cols < 1)
-      return(NA)
-    mxlen <- sapply(mx, length)
-    end <- which(mxlen != n.cols)[1] - 1
-    mx <- mx[1:end]
-    cm <- matrix(unlist(mx), ncol = n.cols, byrow = TRUE)
-    if (empty.left.col)
-      cm <- cm[, -1]
-    col.names <- cm[1, -1]
-    row.names <- cm[, 1][-1]
-    col.names <- gsub("[[:space:]]+", "", col.names)
-    cm <- cm[-1, -1]
-    m <- matrix(as.numeric(cm), nrow = nrow(cm))
-    dimnames(m) <- list(row.names, col.names)
-    return(m)
-  }
-  stats <- extract(log.txt, "Node statistics")
-  DIC <- extract(log.txt, "DIC", skip = 1, empty.left.col = FALSE)
-  list(stats = stats, DIC = DIC)
-}
-
-
-bugs.inits <- function(inits, n.chains, digits, inits.files = paste("inits", seq_len(n.chains), ".txt", sep = "")) {
-  # Function from the 'R2WinBUGS' package
+bugs.inits <- function(inits, n.chains, digits, cluster = NULL, bugs.seed = NULL, inits.files = paste("inits", seq_len(n.chains), ".txt", sep = "")) {
+  # Function adapted from the 'R2WinBUGS' package
 
   if (!is.null(inits)) {
-    for (i in seq_len(n.chains)) {
-      if (is.function(inits))
-        write.datafile(lapply(inits(), formatC, digits = digits, format = "E"), inits.files[i])
-       else
+    if (is.function(inits)) {
+      if (!is.null(bugs.seed)) {
+        cl <- parallel::makeCluster(cluster, type = "PSOCK", setup_strategy = "sequential")
+        RNGkind("L'Ecuyer-CMRG")
+        parallel::clusterSetRNGStream(cl, bugs.seed)
+        parallel::clusterExport(
+          cl      = cl,
+          varlist = c("write.datafile", "inits", "digits", "inits.files"),
+          envir   = environment()
+        )
+        parallel::parSapply(cl, seq_len(n.chains), function(x) {
+          set.seed(sample.int(n = 1e+8, size = 1))
+          write.datafile(lapply(inits(), formatC, digits = digits, format = "E"), inits.files[x])
+        })
+        on.exit(parallel::stopCluster(cl), add = TRUE)
+      } else {
+        for (i in seq_len(n.chains)) {
+          write.datafile(lapply(inits(), formatC, digits = digits, format = "E"), inits.files[i])
+        }
+      }
+    } else {
+      for (i in seq_len(n.chains)) {
         write.datafile(lapply(inits[[i]], formatC, digits = digits, format = "E"), inits.files[i])
+      }
     }
   }
   return(inits.files)
@@ -76,15 +59,6 @@ write.datafile <- function(datalist, towhere, fill = TRUE) {
 
   if (!is.list(datalist) || is.data.frame(datalist))
     stop("First argument to write.datafile must be a list.")
-  cat(formatdata(datalist), file = towhere, fill = fill)
-}
-
-
-formatdata <- function(datalist) {
-  # Function from the 'R2WinBUGS' package
-
-  if (!is.list(datalist) || is.data.frame(datalist))
-    stop("Argument to formatdata() must be a list.")
   n <- length(datalist)
   datalist.string <- vector(n, mode = "list")
   for (i in 1:n) {
@@ -101,7 +75,7 @@ formatdata <- function(datalist) {
       )
   }
   datalist.tofile <- paste("list(", paste(unlist(datalist.string), collapse = ", "), ")", sep = "")
-  datalist.tofile
+  cat(datalist.tofile, file = towhere, fill = fill)
 }
 
 
@@ -366,84 +340,6 @@ conv.par <- function(x, n.chains, Rupper.keep = TRUE) {
 }
 
 
-monitor <- function(a, n.chains = dim(a)[2], trans = NULL, keep.all = FALSE, Rupper.keep = FALSE) {
-  # Function from the 'R2WinBUGS' package
-
-  invlogit <- function(x) 1 / (1 + exp(-x))
-  logit    <- function(x) log(x/(1 - x))
-
-  nparams  <- if (length(dim(a)) < 3) 1 else dim(a)[length(dim(a))]
-  output   <- matrix(
-    data = NA,
-    ncol = if (n.chains > 1) {if (Rupper.keep) 10 else 9} else 7,
-    nrow = nparams
-  )
-  if (length(dim(a)) == 2)
-    a <- array(a, c(dim(a), 1))
-  if (!keep.all) {
-    n <- floor(dim(a)[1]/2)
-    a <- a[(n + 1):(2 * n), , , drop = FALSE]
-  }
-  if (is.null(trans))
-    trans <- ifelse((apply(a <= 0, 3, sum)) == 0, "log", "")
-  for (i in 1:nparams) {
-    ai <- a[, , i, drop = FALSE]
-    if (trans[i] == "log") {
-      conv.p <- conv.par(log(ai), n.chains, Rupper.keep = Rupper.keep)
-      conv.p <- list(quantiles = exp(conv.p$quantiles),
-                     confshrink = conv.p$confshrink, n.eff = conv.p$n.eff)
-    } else if (trans[i] == "logit") {
-      conv.p <- conv.par(logit(ai), n.chains, Rupper.keep = Rupper.keep)
-      conv.p <- list(quantiles = invlogit(conv.p$quantiles),
-                     confshrink = conv.p$confshrink, n.eff = conv.p$n.eff)
-    } else {
-      conv.p <- conv.par(ai, n.chains, Rupper.keep = Rupper.keep)
-    }
-    output[i, ] <- c(
-      mean(ai),
-      stats::sd(as.vector(ai)),
-      conv.p$quantiles,
-      if (n.chains > 1) conv.p$confshrink,
-      if (n.chains > 1) round(conv.p$n.eff, min(0, 1 - floor(log10(conv.p$n.eff))))
-    )
-  }
-  if (n.chains > 1) {
-    dimnames(output) <- list(
-      dimnames(a)[[3]],
-      c("mean", "sd", "2.5%", "25%", "50%", "75%", "97.5%", "Rhat", if (Rupper.keep) "Rupper", "n.eff")
-    )
-  } else {
-    dimnames(output) <- list(
-      dimnames(a)[[3]],
-      c("mean", "sd", "2.5%", "25%", "50%", "75%", "97.5%")
-    )
-  }
-
-  return(output)
-}
-
-
-bugs.data <- function(data, dir = getwd(), digits = 5, data.file = "data.txt") {
-  # Function from the 'R2WinBUGS' package
-
-  if (is.numeric(unlist(data))) {
-    write.datafile(
-      lapply(data, formatC, digits = digits, format = "E"),
-      file.path(dir, data.file)
-    )
-  } else {
-    data.list        <- lapply(as.list(data), get, pos = parent.frame(2))
-    names(data.list) <- as.list(data)
-    write.datafile(
-      lapply(data.list, formatC, digits = digits, format = "E"),
-      file.path(dir, data.file)
-    )
-  }
-
-  return(data.file)
-}
-
-
 replaceScientificNotation <- function(bmodel, digits = 5) {
   # Function from the 'R2WinBUGS' package
 
@@ -480,15 +376,6 @@ replaceScientificNotation <- function(bmodel, digits = 5) {
   }
 
   return(bmodel)
-}
-
-
-write.model <- function(model, con = "model.bug", digits = 5) {
-  # Function from the 'R2WinBUGS' package
-
-  model.text <- c("model", replaceScientificNotation(body(model), digits = digits))
-  model.text <- gsub("%_%", "", model.text)
-  writeLines(model.text, con = con)
 }
 
 
