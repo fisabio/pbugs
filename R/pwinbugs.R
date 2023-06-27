@@ -8,7 +8,7 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
                      useWINE = (.Platform$OS.type != "windows"), WINE = "default",
                      newWINE = TRUE, WINEPATH = "default", bugs.seed = NULL,
                      summary.only = FALSE, save.history = !summary.only, over.relax = FALSE,
-                     slice) {
+                     slice, cluster_export = NULL) {
 
   if (summary.only) {
     summary.only <- FALSE
@@ -154,11 +154,12 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     if (!is.function(inits) && !is.null(inits) && (length(inits) != n.chains))
       stop("Number of initialized chains (length(inits)) != n.chains")
     bugs.inits.files <- bugs.inits(
-      inits     = inits,
-      n.chains  = n.chains,
-      digits    = digits,
-      cluster   = cluster,
-      bugs.seed = bugs.seed
+      inits          = inits,
+      n.chains       = n.chains,
+      digits         = digits,
+      cluster        = cluster,
+      bugs.seed      = bugs.seed,
+      cluster_export = cluster_export
     )
   }
   if (DIC) parameters.to.save <- c(parameters.to.save, "deviance")

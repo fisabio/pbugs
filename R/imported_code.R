@@ -20,12 +20,19 @@ findUnixBinary <- function(x) {
 }
 
 
-bugs.inits <- function(inits, n.chains, digits, cluster = NULL, bugs.seed = NULL, inits.files = paste("inits", seq_len(n.chains), ".txt", sep = "")) {
+bugs.inits <- function(inits, n.chains, digits, cluster = NULL, bugs.seed = NULL, inits.files = paste("inits", seq_len(n.chains), ".txt", sep = ""), cluster_export) {
   # Function adapted from the 'R2WinBUGS' package
 
   if (!is.null(inits)) {
     if (is.function(inits)) {
       if (!is.null(bugs.seed)) {
+        if (!is.null(cluster_export)) {
+          stopifnot(is.character(cluster_export))
+        } else {
+          cluster_export <- character()
+        }
+
+
         cl <- parallel::makeCluster(cluster, type = "PSOCK", setup_strategy = "sequential")
         RNGkind("L'Ecuyer-CMRG")
         parallel::clusterSetRNGStream(cl, bugs.seed)
@@ -34,6 +41,14 @@ bugs.inits <- function(inits, n.chains, digits, cluster = NULL, bugs.seed = NULL
           varlist = c("write.datafile", "inits", "digits", "inits.files"),
           envir   = environment()
         )
+        if (!is.null(cluster_export)) {
+          stopifnot(is.character(cluster_export))
+          parallel::clusterExport(
+            cl      = cl,
+            varlist = cluster_export,
+            envir   = globalenv()
+          )
+        }
         parallel::parSapply(cl, seq_len(n.chains), function(x) {
           set.seed(sample.int(n = 1e+8, size = 1))
           write.datafile(lapply(inits(), formatC, digits = digits, format = "E"), inits.files[x])
