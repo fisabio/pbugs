@@ -4,18 +4,18 @@
 \alias{traceplot}
 \title{History Plot of Selected Variables in the Model}
 \usage{
-traceplot(x,var.names = character(), var.pattern = character(),
-  not.converged = FALSE, convergence.criteria = c(100, 1.1), mfrow = c(3, 4),
+traceplot(x, var.pattern = character(), var.names = character(),
+  not.converged = FALSE, convergence.criteria = c(100, 1.1), mfrow = NULL,
   max.devices = 10, ...)
 }
 \arguments{
 \item{x}{Object of class \code{bugs} or \code{pbugs}.}
 
-\item{var.names}{Character. Vector with the literal names of the variables to
-be plotted.}
-
 \item{var.pattern}{Character. Regular expression (as used in
 \code{\link[base]{grep}}) for selecting the variables to be plotted.}
+
+\item{var.names}{Character. Vector with the literal names of the variables to
+be plotted.}
 
 \item{not.converged}{Logical, default: FALSE. Plot just those variables with
 deficient convergence?}
@@ -27,7 +27,8 @@ plotted. The default thresholds are fixed to 100 for Neff and 1.1 for the
 Rhat criteria.}
 
 \item{mfrow}{A vector of length 2, specifying the number of rows and columns
-on each device. Equal to c(3,4) by default.}
+on each device. Default NULL (tries to accommodate the number of parameters
+using mfrow values from c(1, 1) to c(4, 4)).}
 
 \item{max.devices}{Maximum number of devices to generate containing the
 requested history plots. Equal to 10 by default.}
@@ -65,14 +66,6 @@ If \code{length(var.names) == 0 & length(var.pattern) == 0 &
     )
     bugs_init <- function() list(beta = rnorm(4, sd = .5))
     bugs_pars <- c("beta", "pi")
-    result    <- pbugs(
-      data               = bugs_data,
-      inits              = bugs_init,
-      parameters.to.save = bugs_pars,
-      model.file         = bugs_model,
-      n.thin             = 1,
-      n.chains           = 4
-    )
     traceplot(result, var.names = c("beta[1]", "beta[3]"))
     traceplot(result, var.pattern = "beta")
     traceplot(result, var.pattern = "beta|pi\\\\[1\\\\d?\\\\]")

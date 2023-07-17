@@ -19,10 +19,10 @@ select.pars <- function(x, cutoff.neff = 100, cutoff.rhat = 1.1) {
 #'   corresponding \code{bugs} or \code{pbugs} object.
 #'
 #' @param x Object of class \code{bugs} or \code{pbugs}.
-#' @param var.names Character. Vector with the literal names of the variables to
-#'   be plotted.
 #' @param var.pattern Character. Regular expression (as used in
 #'   \code{\link[base]{grep}}) for selecting the variables to be plotted.
+#' @param var.names Character. Vector with the literal names of the variables to
+#'   be plotted.
 #' @param not.converged Logical, default: FALSE. Plot just those variables with
 #'   deficient convergence?
 #' @param convergence.criteria Numeric vector of length 2 with thresholds for
@@ -31,14 +31,15 @@ select.pars <- function(x, cutoff.neff = 100, cutoff.rhat = 1.1) {
 #'   plotted. The default thresholds are fixed to 100 for Neff and 1.1 for the
 #'   Rhat criteria.
 #' @param mfrow A vector of length 2, specifying the number of rows and columns
-#'   on each device. Equal to c(3,4) by default.
+#'   on each device. Default NULL (tries to accommodate the number of parameters
+#'   using mfrow values from c(1, 1) to c(4, 4)).
 #' @param max.devices Maximum number of devices to generate containing the
 #'   requested history plots. Equal to 10 by default.
 #' @param ... Additional arguments to be passed to \code{\link[graphics]{plot}}
 #'   function.
 #'
-#' @usage traceplot(x,var.names = character(), var.pattern = character(),
-#'   not.converged = FALSE, convergence.criteria = c(100, 1.1), mfrow = c(3, 4),
+#' @usage traceplot(x, var.pattern = character(), var.names = character(),
+#'   not.converged = FALSE, convergence.criteria = c(100, 1.1), mfrow = NULL,
 #'   max.devices = 10, ...)
 #'
 #'
@@ -61,26 +62,26 @@ select.pars <- function(x, cutoff.neff = 100, cutoff.rhat = 1.1) {
 #'     )
 #'     bugs_init <- function() list(beta = rnorm(4, sd = .5))
 #'     bugs_pars <- c("beta", "pi")
-#'     result    <- pbugs(
-#'       data               = bugs_data,
-#'       inits              = bugs_init,
-#'       parameters.to.save = bugs_pars,
-#'       model.file         = bugs_model,
-#'       n.thin             = 1,
-#'       n.chains           = 4
-#'     )
+    # result    <- pbugs(
+    #   data               = bugs_data,
+    #   inits              = bugs_init,
+    #   parameters.to.save = bugs_pars,
+    #   model.file         = bugs_model,
+    #   n.thin             = 1,
+    #   n.chains           = 4
+    # )
 #'     traceplot(result, var.names = c("beta[1]", "beta[3]"))
 #'     traceplot(result, var.pattern = "beta")
 #'     traceplot(result, var.pattern = "beta|pi\\[1\\d?\\]")
 #'   }
 #'
 #' @export
-traceplot <- function(x, var.names = character(), var.pattern = character(),
+traceplot <- function(x, var.pattern = character(), var.names = character(),
                       not.converged = FALSE, convergence.criteria = c(100, 1.1),
-                      mfrow = c(3, 4), max.devices = 10, ...) {
+                      mfrow = NULL, max.devices = 10, ...) {
   stopifnot(any(c("pbugs", "bugs") %in% class(x)))
   stopifnot(length(convergence.criteria) == 2 & is.numeric(convergence.criteria))
-  stopifnot(length(mfrow) == 2 & (is.numeric(mfrow) | is.integer(mfrow)))
+  stopifnot(is.null(mfrow) | length(mfrow) == 2 & (is.numeric(mfrow) | is.integer(mfrow)))
   stopifnot(length(max.devices) == 1 & (is.numeric(max.devices) | is.integer(max.devices)))
   stopifnot(!is.null(var.names))
   stopifnot(is.character(var.names))
@@ -112,12 +113,51 @@ traceplot <- function(x, var.names = character(), var.pattern = character(),
     }
   }
   if (not.converged) {
-    aux <- select.pars(x, cutoff.neff = convergence.criteria[1], cutoff.rhat = convergence.criteria[2])
+    aux <- select.pars(
+      x           = x,
+      cutoff.neff = convergence.criteria[1],
+      cutoff.rhat = convergence.criteria[2]
+    )
+    aux <- aux[aux %in% params]
     if (length(aux) == 0) {
       message("All parameters converged!\n")
+      return()
+    } else {
+      mi_sel <- params %in% aux
+      params <- params[mi_sel]
+
+      if (length(aux) == length(mi_sel)) {
+        message("No parameter among those selected has converged.\n")
+      } else {
+        message(
+          paste(
+            sum(mi_sel),
+            "of the",
+            length(mi_sel),
+            "selected parameters have not converged.\n"
+          )
+        )
+      }
     }
   }
+
   n.pars   <- length(params)
+  if (is.null(mfrow)) {
+    mfrow <- if (n.pars < 10) {
+      c(1, 1)
+    } else if (n.pars < 20) {
+      c(1, 2)
+    } else if (n.pars < 30) {
+      c(1, 3)
+    } else if (n.pars < 40) {
+      c(1, 4)
+    } else if (n.pars < 80) {
+      c(2, 4)
+    } else if (n.pars < 120) {
+      c(3, 4)
+    } else c(4, 4)
+  }
+
   max.pars <- mfrow[1] * mfrow[2] * max.devices
 
   if (n.pars > max.pars) {
@@ -161,4 +201,3 @@ traceplot <- function(x, var.names = character(), var.pattern = character(),
     }
   }
 }
-

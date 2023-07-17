@@ -112,7 +112,7 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
       )
       isok <- file.copy(arch, file.path(pbugs.path, arch2))
       if (!all(isok)) {
-        stop("Cannot create WinBUGS copies")
+        stop("Cannot create OpenBUGS copies")
       }
     }
   }
