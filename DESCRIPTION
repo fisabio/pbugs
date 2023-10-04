@@ -1,11 +1,11 @@
 Package: pbugs
 Type: Package
 Title: Run 'WinBUGS' or 'OpenBUGS' Models in Parallel
-Version: 1.0.5
-Date: 2023-07-17
+Version: 1.0.6
+Date: 2023-10-04
 Authors@R: c(
     person("Miguel Ángel", "Martínez-Beneito", email = "miguel.a.martinez@uv.es", role = "aut", comment = c(ORCID = "0000-0001-8406-8050")),
-    person("Carlos", "Vergara-Hernández", email = "vergara_car@gva.es", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-7263-856X")),
+    person("Carlos", "Vergara-Hernández", email = "carlos.vergara@fisabio.es", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-7263-856X")),
     person("Andrew", "Gelman", email = "gelman@stat.columbia.edu", role = "cph", comment = "R2WinBUGS package author"),
     person("Sibylle", "Sturtz", email = "sturtz@statistik.tu-dortmund.de", role = "cph", comment = "R2WinBUGS package author"),
     person("Uwe", "Ligges", email = "ligges@statistik.tu-dortmund.de", role = "cph", comment = "R2WinBUGS package author"),
@@ -13,7 +13,7 @@ Authors@R: c(
     person("Jouni", "Kerman", email = "kerman@stat.columbia.edu", role = "cph", comment = "R2WinBUGS package author"),
     person("Neal", "Thomas", email = "snthomas99@gmail.com", role = "cph", comment = "R2OpenBUGS package author")
     )
-Maintainer: Carlos Vergara-Hernández <vergara_car@gva.es>
+Maintainer: Carlos Vergara-Hernández <carlos.vergara@fisabio.es>
 Description: Call 'WinBUGS' or 'OpenBUGS' from your R session running multiple chains
     in parallel. Results are returned in an object of class 'bugs' and 'pbugs'. 
     Functions have been adapted from the 'R2WinBUGS' package (Sturtz, Ligges and Gelman, 2005
