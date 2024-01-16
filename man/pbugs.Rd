@@ -4,10 +4,9 @@
 \alias{pbugs}
 \title{Run \code{WinBUGS} or \code{OpenBUGS} Models in Parallel}
 \usage{
-pbugs(data, inits, parameters.to.save, model.file,debug = FALSE,
-  program = c("winbugs", "openbugs"),bugs.directory = "default", cluster =
-  NULL, pbugs.directory = "default",slice = FALSE, OpenBUGS.pgm = "default",
-  ...)
+pbugs(data, inits, parameters.to.save, model.file,debug = FALSE, program =
+  c("winbugs", "openbugs"),bugs.directory = "default", cluster = NULL, pbugs.directory
+  = "default",slice = FALSE, OpenBUGS.pgm = "default", cluster_export = NULL, ...)
 }
 \arguments{
 \item{data}{List or character. Either a named list (names corresponding to
@@ -84,6 +83,9 @@ argument of the \code{R2WinBUGS::bugs} function. Directory where
 \code{OpenBUGS} is installed. Several copies (as many as chains to be run)
 of this directory are created at the \code{pbugs.directory} folder, if they
 are not still created.}
+
+\item{cluster_export}{Character, default: NULL. Additional objects to export to
+computer cores.}
 
 \item{...}{Additional arguments to be passed to \code{R2WinBUGS::bugs}
 function.}

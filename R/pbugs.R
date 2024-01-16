@@ -29,10 +29,9 @@
 #'   should not be hardly different to the DIC calcuted for all the chains
 #'   simulated.
 #'
-#' @usage pbugs(data, inits, parameters.to.save, model.file,debug = FALSE,
-#'   program = c("winbugs", "openbugs"),bugs.directory = "default", cluster =
-#'   NULL, pbugs.directory = "default",slice = FALSE, OpenBUGS.pgm = "default",
-#'   ...)
+#' @usage pbugs(data, inits, parameters.to.save, model.file,debug = FALSE, program =
+#'   c("winbugs", "openbugs"),bugs.directory = "default", cluster = NULL, pbugs.directory
+#'   = "default",slice = FALSE, OpenBUGS.pgm = "default", cluster_export = NULL, ...)
 #'
 #' @param data List or character. Either a named list (names corresponding to
 #'   variable names in the \code{model.file}) of the data for the \code{WinBUGS}
@@ -98,6 +97,8 @@
 #'   \code{OpenBUGS} is installed. Several copies (as many as chains to be run)
 #'   of this directory are created at the \code{pbugs.directory} folder, if they
 #'   are not still created.
+#' @param cluster_export Character, default: NULL. Additional objects to export to
+#'   computer cores.
 #' @param ... Additional arguments to be passed to \code{R2WinBUGS::bugs}
 #'   function.
 #'
@@ -134,7 +135,7 @@
 pbugs <- function(data, inits, parameters.to.save, model.file,
                   debug = FALSE, program = c("winbugs", "openbugs"),
                   bugs.directory = "default", cluster = NULL, pbugs.directory = "default",
-                  slice = FALSE, OpenBUGS.pgm = "default", ...) {
+                  slice = FALSE, OpenBUGS.pgm = "default", cluster_export = NULL, ...) {
 
   stopifnot(is.character(pbugs.directory))
   if (!is.null(cluster)) {
@@ -169,6 +170,7 @@ pbugs <- function(data, inits, parameters.to.save, model.file,
       cluster            = cluster,
       pbugs.directory    = pbugs.directory,
       slice              = slice,
+      cluster_export     = cluster_export,
       ...
     )
   } else {
@@ -181,6 +183,7 @@ pbugs <- function(data, inits, parameters.to.save, model.file,
       debug              = debug,
       pbugs.directory    = pbugs.directory,
       cluster            = cluster,
+      cluster_export     = cluster_export,
       ...
     )
   }

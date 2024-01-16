@@ -8,7 +8,7 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
                      useWINE = (.Platform$OS.type != "windows"), WINE = "default",
                      newWINE = TRUE, WINEPATH = "default", bugs.seed = NULL,
                      summary.only = FALSE, save.history = !summary.only, over.relax = FALSE,
-                     slice) {
+                     slice, cluster_export = NULL) {
 
   if (summary.only) {
     summary.only <- FALSE
@@ -108,7 +108,7 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     } else {
       gsub("\\.tmp$", ".txt", temp)
     }
-    write.model(model.file, con = temp, digits = digits)
+    R2WinBUGS::write.model(model.file, con = temp, digits = digits)
     model.file <- gsub("\\\\", "/", temp)
   } else {
     if (inTempDir && basename(model.file) == model.file)
@@ -120,13 +120,29 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
   }
 
   if (!(length(data) == 1 && is.vector(data) && is.character(data) && (regexpr("\\.txt$", data) > 0))) {
-    bugs.data.file <- bugs.data(data, dir = getwd(), digits = digits)
+    bugs.data.file <- R2WinBUGS::bugs.data(data, dir = getwd(), digits = digits)
   } else {
     if (inTempDir && all(basename(data) == data))
       try(.fileCopy(file.path(savedWD, data), data, overwrite = TRUE))
     if (!file.exists(data)) stop("File", data, "does not exist.")
     bugs.data.file <- data
   }
+
+  #####################
+  # Pbugs-specific code
+  try(dir.create(file.path(working.directory, "Pbugs-working"), showWarnings = FALSE))
+
+  cluster_tmp <- min(n.chains, max(2, parallel::detectCores() - 1))
+  if (is.null(cluster)) {
+    cluster <- cluster_tmp
+  } else if (cluster > n.chains) {
+    warning(
+      paste0("Parameter `cluster` > n.chains! Automatic cluster configuration",
+             " (based on n.chains and available cores)")
+    )
+    cluster <- cluster_tmp
+  }
+
 
   if (is.character(inits)) {
     if (inTempDir && all(basename(inits) == inits))
@@ -137,7 +153,14 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
   } else {
     if (!is.function(inits) && !is.null(inits) && (length(inits) != n.chains))
       stop("Number of initialized chains (length(inits)) != n.chains")
-    bugs.inits.files <- bugs.inits(inits, n.chains, digits = digits)
+    bugs.inits.files <- bugs.inits(
+      inits          = inits,
+      n.chains       = n.chains,
+      digits         = digits,
+      cluster        = cluster,
+      bugs.seed      = bugs.seed,
+      cluster_export = cluster_export
+    )
   }
   if (DIC) parameters.to.save <- c(parameters.to.save, "deviance")
   if (!length(grep("\\.txt$", tolower(model.file)))) {
@@ -152,13 +175,6 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     new.model.file <- gsub("//", "/", new.model.file)
   }
 
-  #####################
-  # Pbugs-specific code
-  try(dir.create(file.path(working.directory, "Pbugs-working"), showWarnings = F))
-
-  if (is.null(cluster) || cluster > n.chains) {
-    cluster <- min(n.chains, max(2, parallel::detectCores() - 1))
-  }
 
   try(pwinbugs.run(
     n.burnin           = n.burnin,
@@ -233,7 +249,7 @@ pwinbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     pD  <- rep(NA, n.chains)
     DIC <- rep(NA, n.chains)
     for (i in seq_len(n.chains)) {
-      LOG[[i]] <- bugs.log(
+      LOG[[i]] <- R2WinBUGS::bugs.log(
         file.path(working.directory, "Pbugs-working", paste0("ch", real.chains[i]), "log.txt")
       )$DIC
     }
@@ -285,7 +301,7 @@ pwinbugs.run <- function(n.burnin, bugs.directory, cluster, pbugs.directory, n.c
 
 
   .fileCopy <- file.copy
-  cl <- parallel::makeCluster(cluster, type = "PSOCK", setup_strategy="sequential")
+  cl <- parallel::makeCluster(cluster, type = "PSOCK", setup_strategy = "sequential")
   RNGkind("L'Ecuyer-CMRG")
   on.exit(parallel::stopCluster(cl), add = TRUE)
   if (!is.null(bugs.seed)) {

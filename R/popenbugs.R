@@ -9,7 +9,8 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
                      working.directory = NULL, clearWD = FALSE,
                      useWINE = FALSE, WINE = "default",
                      newWINE = TRUE, WINEPATH = "default", bugs.seed = NULL,
-                     save.history = FALSE, over.relax = FALSE, summary.only = FALSE) {
+                     save.history = FALSE, over.relax = FALSE, summary.only = FALSE,
+                     cluster_export = cluster_export) {
 
   if (OpenBUGS.pgm == "default") {
     if (.Platform$OS.type == "unix") {
@@ -111,7 +112,7 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
       )
       isok <- file.copy(arch, file.path(pbugs.path, arch2))
       if (!all(isok)) {
-        stop("Cannot create WinBUGS copies")
+        stop("Cannot create OpenBUGS copies")
       }
     }
   }
@@ -153,7 +154,7 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     } else {
       gsub("\\.tmp$", ".txt", temp)
     }
-    write.model(model.file, con = temp, digits = digits)
+    R2WinBUGS::write.model(model.file, con = temp, digits = digits)
     model.file <- gsub("\\\\", "/", temp)
   } else {
     if (!file.exists(model.file))
@@ -172,7 +173,7 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
 
 
   if (!(length(data) == 1 && is.vector(data) && is.character(data) && (regexpr("\\.txt$", data) > 0))) {
-    bugs.data.file <- bugs.data(data, dir = getwd(), digits)
+    bugs.data.file <- R2WinBUGS::bugs.data(data, dir = getwd(), digits)
   } else {
     if (inTempDir && all(basename(data) == data))
       try(file.copy(file.path(savedWD, data), data, overwrite = TRUE))
@@ -180,8 +181,38 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
     bugs.data.file <- data
   }
 
-  if (is.character(inits)) {
 
+
+
+
+  #####################
+  # Pbugs-specific code
+  try(dir.create(file.path(working.directory, "Pbugs-working"), showWarnings = FALSE))
+
+
+  cluster_tmp <- min(n.chains, max(2, parallel::detectCores() - 1))
+  if (is.null(cluster)) {
+    cluster <- cluster_tmp
+  } else if (cluster > n.chains) {
+    warning(
+      paste0("Parameter `cluster` > n.chains! Automatic cluster configuration",
+             " (based on n.chains and available cores)")
+    )
+    cluster <- cluster_tmp
+  }
+
+
+
+  if (is.null(bugs.seed) && n.chains > 14) {
+    seed <- sample.int(n = 14, size = n.chains)
+  } else {
+    RNGkind("L'Ecuyer-CMRG")
+    set.seed(bugs.seed)
+    seed <- sample.int(n = 14, size = n.chains)
+  }
+
+
+  if (is.character(inits)) {
     #####################
     # Pbugs-specific code
     if (inTempDir && all(basename(inits) == inits))
@@ -195,9 +226,15 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
   } else {
     if (!is.function(inits) && !is.null(inits) && (length(inits) != n.chains))
       stop("Number of initialized chains (length(inits)) != n.chains")
-    bugs.inits.files <- bugs.inits(inits, n.chains, digits)
+    bugs.inits.files <- bugs.inits(
+      inits          = inits,
+      n.chains       = n.chains,
+      digits         =  digits,
+      cluster        = cluster,
+      bugs.seed      = bugs.seed,
+      cluster_export = cluster_export
+    )
   }
-
 
   if (DIC) parameters.to.save <- c(parameters.to.save, "deviance")
   if (!length(grep("\\.txt$", tolower(model.file)))) {
@@ -217,21 +254,6 @@ popenbugs <- function(data, inits, parameters.to.save, model.file, n.chains = 3,
   }
   if (useWINE) {
     new.model.file <- gsub("//", "/", new.model.file)
-  }
-
-  #####################
-  # Pbugs-specific code
-  try(dir.create(file.path(working.directory, "Pbugs-working"), showWarnings = FALSE))
-
-  if (is.null(cluster) || cluster > n.chains) {
-    cluster <- min(n.chains, max(2, parallel::detectCores() - 1))
-  }
-  if (is.null(bugs.seed)) {
-    seed <- sample.int(n = 14, size = n.chains)
-  } else {
-    RNGkind("L'Ecuyer-CMRG")
-    set.seed(bugs.seed)
-    seed <- sample.int(n = 14, size = n.chains)
   }
 
   for (i in seq_len(n.chains)) {
